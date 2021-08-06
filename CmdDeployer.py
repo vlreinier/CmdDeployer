@@ -7,7 +7,7 @@ from Settings import logo_loc, config_loc, width_perc, height_perc, min_width, m
 if __name__ == "__main__":
     if path.isfile(config_loc):
 
-        cmd_visibility()
+        #cmd_visibility()
         root = FrameContainer()
         root.title("Command Deployer")
 

@@ -338,7 +338,7 @@ class Progression(Frame):
         errorlevel.config(text="KILLED", fg=err_color)
 
     def target_finalization(self, status_name_, hostname, killbutton, start_time, runtime):
-        status_name_.config(bg='white')
+        status_name_.config(bg=bg_two, fg="#008000")
         killbutton.unbind('<Enter>')
         killbutton.unbind('<Leave>')
         killbutton.config(state='disabled', cursor='arrow', font=("Verdana", 9, ""))
@@ -435,8 +435,8 @@ class Progression(Frame):
             status_name = Label(status_name_frame, text="Name:", anchor='w',
                                 font=('Verdana', 9), bg=bg_two)
             status_name.grid(row=0, column=0, sticky='ew')
-            status_name_ = Label(status_name_frame, text=hostname, anchor='center', borderwidth=1, relief="flat",
-                                font=('Verdana', 9, 'bold'), bg='white', width=8)
+            status_name_ = Label(status_name_frame, text=hostname, anchor='w', borderwidth=1, relief="flat",
+                                font=('Verdana', 9, 'bold'), bg=bg_two, width=8)
             status_name_.grid(row=0, column=1, sticky='ew')
             connection_frame = Frame(status_frame, bg=bg_two)
             connection_frame.grid(row=0, column=2, sticky='ew', padx=5)
@@ -444,7 +444,7 @@ class Progression(Frame):
                 connection_frame, text="Ping:", font=('Verdana', 9), bg=bg_two, anchor='w')
             connection.grid(row=0, column=1, sticky='ew')
             connection_ = Label(
-                connection_frame, font=('Verdana', 9, 'bold'), text='-', bg='white', anchor='center', borderwidth=1, relief="flat", width=2)
+                connection_frame, font=('Verdana', 9, 'bold'), text='-', bg=bg_two, anchor='w', borderwidth=1, relief="flat", width=2)
             connection_.grid(row=0, column=2, sticky='ew')
             errorlevel_frame = Frame(status_frame, bg=bg_two)
             errorlevel_frame.grid(row=0, column=3, sticky='ew', padx=5)
@@ -453,7 +453,7 @@ class Progression(Frame):
                 errorlevel_frame, text="Result:", font=('Verdana', 9), bg=bg_two, anchor='w')
             errorlevel.grid(row=0, column=0, sticky='ew')
             errorlevel_ = Label(
-                errorlevel_frame, text="RUNNING..", font=('Verdana', 9, 'bold'), bg='white', anchor='center', borderwidth=1, relief="flat", width=6)
+                errorlevel_frame, text="RUNNING..", font=('Verdana', 9, 'bold'), bg=bg_two, anchor='w', borderwidth=1, relief="flat", width=6)
             errorlevel_.grid(row=0, column=1, sticky='ew')
             runtime_frame = Frame(status_frame, bg=bg_two)
             runtime_frame.grid(row=0, column=4, sticky='ew', padx=5)
@@ -462,7 +462,7 @@ class Progression(Frame):
                 runtime_frame, text="Runtime:", font=('Verdana', 9), bg=bg_two, anchor='w')
             runtime.grid(row=0, column=0, sticky='ew')
             runtime_ = Label(
-                runtime_frame,  font=('Verdana', 9, 'bold'), bg='white', anchor='center', borderwidth=1, relief="flat", width=3)
+                runtime_frame,  font=('Verdana', 9, 'bold'), bg=bg_two, anchor='w', borderwidth=1, relief="flat", width=3)
             runtime_.grid(row=0, column=1, sticky='ew')
             killbutton = Button(status_frame,  text="Kill", font=('Verdana', 9), bg=bg_two, anchor='e',
                         relief="flat", activebackground=bg_two, bd=0, state='disabled')
