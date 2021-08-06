@@ -259,7 +259,7 @@ class Progression(Frame):
                 killbutton.bind('<Enter>', lambdaf_event(
                     obj_bg, status_name_, err_color), add="+")
                 killbutton.bind('<Leave>', lambdaf_event(
-                    obj_bg, status_name_, 'white'), add="+")
+                    obj_bg, status_name_, bg_two), add="+")
                 killbutton.bind("<Enter>", lambda event: event.widget.config(
                     font=('Verdana', 9, 'underline')), add="+")
                 killbutton.bind("<Leave>", lambda event: event.widget.config(
@@ -422,7 +422,7 @@ class Progression(Frame):
                 break
             self.current_running_threads += 1
             status_frame = Frame(self.progression_frame, bg=bg_two, bd=4)
-            output_button = Button(status_frame, text="ᐁ", font=('Verdana', 9, 'bold'), bg=bg_two, relief='flat',
+            output_button = Button(status_frame, text="ᐁ", font=('Verdana', 9), bg=bg_two, relief='flat',
                                 bd=0, anchor='w', activebackground=bg_two, state='disabled')
             output_button.grid(row=0, column=0, sticky='ew', padx=3)
             cmd_output = Text(status_frame, font=(
@@ -430,50 +430,46 @@ class Progression(Frame):
             output_button.config(
                 command=lambdaf(self.show_hide_cmd_output, output_button, cmd_output))
             status_name_frame = Frame(status_frame, bg=bg_two)
-            status_name_frame.grid(row=0, column=1, sticky='ew', padx=5)
+            status_name_frame.grid(row=0, column=1, sticky='ew')
             status_name_frame.grid_columnconfigure(1, weight=1)
             status_name = Label(status_name_frame, text="Name:", anchor='w',
                                 font=('Verdana', 9), bg=bg_two)
             status_name.grid(row=0, column=0, sticky='ew')
             status_name_ = Label(status_name_frame, text=hostname, anchor='w', borderwidth=1, relief="flat",
-                                font=('Verdana', 9, 'bold'), bg=bg_two, width=8)
+                                font=('Verdana', 9), bg=bg_two, width=8)
             status_name_.grid(row=0, column=1, sticky='ew')
             connection_frame = Frame(status_frame, bg=bg_two)
-            connection_frame.grid(row=0, column=2, sticky='ew', padx=5)
+            connection_frame.grid(row=0, column=3, sticky='ew')
             connection = Label(
                 connection_frame, text="Ping:", font=('Verdana', 9), bg=bg_two, anchor='w')
             connection.grid(row=0, column=1, sticky='ew')
             connection_ = Label(
-                connection_frame, font=('Verdana', 9, 'bold'), text='-', bg=bg_two, anchor='w', borderwidth=1, relief="flat", width=2)
+                connection_frame, font=('Verdana', 9), text='-', bg=bg_two, anchor='w', borderwidth=1, relief="flat", width=3)
             connection_.grid(row=0, column=2, sticky='ew')
             errorlevel_frame = Frame(status_frame, bg=bg_two)
-            errorlevel_frame.grid(row=0, column=3, sticky='ew', padx=5)
-            errorlevel_frame.grid_columnconfigure(1, weight=1)
+            errorlevel_frame.grid(row=0, column=4)
+            
             errorlevel = Label(
-                errorlevel_frame, text="Result:", font=('Verdana', 9), bg=bg_two, anchor='w')
+                errorlevel_frame, text="State:", font=('Verdana', 9), bg=bg_two, anchor='w')
             errorlevel.grid(row=0, column=0, sticky='ew')
             errorlevel_ = Label(
-                errorlevel_frame, text="RUNNING..", font=('Verdana', 9, 'bold'), bg=bg_two, anchor='w', borderwidth=1, relief="flat", width=6)
+                errorlevel_frame, text="RUNNING", font=('Verdana', 9), bg=bg_two, anchor='w', borderwidth=1, relief="flat", width=8)
             errorlevel_.grid(row=0, column=1, sticky='ew')
             runtime_frame = Frame(status_frame, bg=bg_two)
-            runtime_frame.grid(row=0, column=4, sticky='ew', padx=5)
+            runtime_frame.grid(row=0, column=2, sticky='ew')
             runtime_frame.grid_columnconfigure(1, weight=1)
             runtime = Label(
-                runtime_frame, text="Runtime:", font=('Verdana', 9), bg=bg_two, anchor='w')
+                runtime_frame, text="Runtime:", font=('Verdana', 9), bg=bg_two, anchor='e')
             runtime.grid(row=0, column=0, sticky='ew')
             runtime_ = Label(
-                runtime_frame,  font=('Verdana', 9, 'bold'), bg=bg_two, anchor='w', borderwidth=1, relief="flat", width=3)
+                runtime_frame,  font=('Verdana', 9), bg=bg_two, anchor='w', borderwidth=1, relief="flat", width=3, text='-')
             runtime_.grid(row=0, column=1, sticky='ew')
             killbutton = Button(status_frame,  text="Kill", font=('Verdana', 9), bg=bg_two, anchor='e',
-                        relief="flat", activebackground=bg_two, bd=0, state='disabled')
-            killbutton.grid(row=0, column=5, sticky='ew', padx=3)
+                        relief="flat", activebackground=bg_two, bd=0, state='disabled', width=3)
+            killbutton.grid(row=0, column=5, sticky='ew')
             status_frame.grid(sticky='news', padx=2, pady=2)
-            status_frame.grid_columnconfigure(0, weight=0)
-            status_frame.grid_columnconfigure(1, weight=2)
-            status_frame.grid_columnconfigure(2, weight=0)
-            status_frame.grid_columnconfigure(3, weight=1)
-            status_frame.grid_columnconfigure(4, weight=1)
-            status_frame.grid_columnconfigure(5, weight=0)
+            status_frame.grid_columnconfigure(1, weight=5)
+            status_frame.grid_columnconfigure(2, weight=1)
             t = Thread( target=self.init_target_deployment, args=(status_name_, output_button, killbutton, hostname,
                             incl_execute, connection_, errorlevel_, runtime_, cmd_output, len(targets), remote), daemon=True)
             threads.append(t)
