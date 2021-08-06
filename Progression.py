@@ -10,7 +10,7 @@ from os import mkdir
 
 from Utils import pingable, cmd_visibility, lambdaf_event, lambdaf, obj_bg, _on_mousewheel, exit_app
 from Settings import fg_one, fg_one, targets_loc, buttonback, psexec_loc, temp_cmd_loc, default_workers
-from Settings import combobox_loc, err_color, buttongo, test_pings, max_output_length, bg_two, bg_one
+from Settings import combobox_loc, err_color, buttongo, test_pings, max_output_length, bg_two, bg_one, max_output
 import Settings
 
 class Progression(Frame):
@@ -270,7 +270,7 @@ class Progression(Frame):
                 errorlevels = set()
 
                 while True:
-                    sleep(0.01)
+                    sleep(0.1)
                     line = process.stdout.readline()
 
                     # End loop or skip line
@@ -297,7 +297,7 @@ class Progression(Frame):
                     outputlabel.config(state='disabled')
 
                     # End loop
-                    if line.startswith("Ending time:"):
+                    if line.startswith("Ending time:") or height >= max_output:
                         break
                     if line.startswith('The handle is invalid')\
                             or line.startswith("De ingang is ongeldig"):

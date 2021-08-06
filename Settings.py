@@ -27,6 +27,7 @@ height_perc = float(config['DEFAULT']['height_perc'])
 min_width = int(config['DEFAULT']['min_width'])
 min_height = int(config['DEFAULT']['min_height'])
 max_output_length = int(config['DEFAULT']['max_output_length'])
+max_output = int(config['DEFAULT']['max_output'])
 
 install_state = None
 installations = None
