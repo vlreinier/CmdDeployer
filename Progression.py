@@ -243,6 +243,10 @@ class Progression(Frame):
             # Include execution and outputting of Batch commands
             if incl_execute:
                 output_button.config(state='normal', cursor='hand2')
+                output_button.bind("<Enter>", lambda event: event.widget.config(
+                    font=('Verdana', 9, 'underline')))
+                output_button.bind("<Leave>", lambda event: event.widget.config(
+                    font=('Verdana', 9, '')))
                 if n_targets < 4 and not self.kill:
                     output_button.invoke()
 
@@ -461,8 +465,8 @@ class Progression(Frame):
             runtime = Label(
                 runtime_frame, text="Runtime:", font=('Verdana', 9), bg=bg_two, anchor='e')
             runtime.grid(row=0, column=0, sticky='ew')
-            runtime_ = Label(
-                runtime_frame,  font=('Verdana', 9), bg=bg_two, anchor='w', borderwidth=1, relief="flat", width=3, text='-')
+            runtime_ = Label(runtime_frame,  font=('Verdana', 9), bg=bg_two, anchor='w',
+                borderwidth=1, relief="flat", width=3, text='-', fg="#008000")
             runtime_.grid(row=0, column=1, sticky='ew')
             killbutton = Button(status_frame,  text="Kill", font=('Verdana', 9), bg=bg_two, anchor='e',
                         relief="flat", activebackground=bg_two, bd=0, state='disabled', width=3)
