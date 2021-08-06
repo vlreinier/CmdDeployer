@@ -274,7 +274,7 @@ class Progression(Frame):
                 errorlevels = set()
 
                 while True:
-                    sleep(0.1)
+                    sleep(0.08)
                     line = process.stdout.readline()
 
                     # End loop or skip line
