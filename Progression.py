@@ -63,7 +63,7 @@ class Progression(Frame):
         # Remote
         self.remote_frame = Frame(self, bg=bg_one, highlightthickness=2, highlightbackground=bg_one)
         self.remote_frame.grid(row=2, sticky='news', padx=10)
-        self.remote_frame.columnconfigure(0, weight=1)
+        self.remote_frame.columnconfigure(0, weight=3)
         self.remote_frame.columnconfigure(2, weight=1)
         self.remote_checkbutton = Checkbutton(self.remote_frame, highlightthickness=2, activebackground=bg_one, text='Remote deployment', font=('Verdana', 8), relief='flat', variable=self.remote_var,
                                          fg=fg_one, bg=bg_one, cursor='hand2', command=self.set_execution_type, bd=0, anchor='w', width=30)
@@ -79,7 +79,7 @@ class Progression(Frame):
         self.use_file_button.bind("<Leave>", lambda event: event.widget.config(
             font=('Verdana', 8, '')))
         self.select_computers_button = Combobox(
-            self.remote_frame, textvariable=self.select_computers_var, justify='right', width=5)
+            self.remote_frame, textvariable=self.select_computers_var, justify='right', width=3)
         self.select_computers_button.config(values=list(sorted(set([line.strip("\n") for line in open(
             combobox_loc, "r") if len(line.strip("\n")) > 0]))), font=('Verdana', 7))
         self.select_computers_button.bind(
@@ -187,7 +187,7 @@ class Progression(Frame):
         if not exists(dir_name):
             mkdir(dir_name)
         with open(temp_cmd_loc, 'w') as cmd:
-            cmd.write(f'@echo off{sep}echo Starting time: %TIME%{sep}')
+            cmd.write(f'@echo off{sep}echo Starting time:%TIME%{sep}')
             if Settings.install_state == "Textinput":
                 cmd.write(Settings.text + sep)
             else:
@@ -197,7 +197,7 @@ class Progression(Frame):
                         cmd.write("Echo @ " + package + sep + packages[package][1] + sep)
                         cmd.write("Echo ^> {0} of {1} ended with ErrorLevel: %ERRORLEVEL%{2}".format(
                             Settings.install_state, package, sep))
-            cmd.write(f"echo Final ErrorLevel: %ERRORLEVEL%{sep}echo Ending time: %TIME%") 
+            cmd.write(f"echo Final ErrorLevel: %ERRORLEVEL%{sep}echo Ending time:%TIME%") 
 
     def runtime(self, start_time):
         seconds = int(time() - start_time)
