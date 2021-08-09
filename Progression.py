@@ -201,7 +201,7 @@ class Progression(Frame):
 
     def runtime(self, start_time):
         seconds = int(time() - start_time)
-        if seconds < 60:
+        if seconds < 61:
             return str(seconds) + ' sec'
         else:
             return str(seconds // 60) + ' min ' + str(seconds % 60) + ' sec'
@@ -257,6 +257,8 @@ class Progression(Frame):
                 # Killbutton config command
                 if self.kill:
                     self.kill_target(hostname, errorlevel, process)
+                    self.target_finalization(status_name_, hostname, killbutton, start_time, runtime)
+                    return
                 killbutton.config(cursor='hand2', state='normal', command=lambda: Thread(target=self.kill_target,
                     args=(hostname, errorlevel, process), daemon=True).start())
                 self.killbuttons.append(killbutton)
