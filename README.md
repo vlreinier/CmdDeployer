@@ -37,4 +37,4 @@ Always use 'call [app]' for starting a process from a command.<br>
 Also software groups and layout for placing these packages can be configured.<br>
 Settings.ini is also for configuring certain app features and layouts.<br>
 
-*This software is not created and verified to be perfect, bugfree and threadsafe. A good advice would be to verify the source code when running this program.*
+*This tool can be very usefull for system admins, but it is not created and verified to be perfect, bugfree and threadsafe. A good advice would be to verify the source code when running this program. Suggestions for improvements or extensions are more than welcome. To contribute code or issue a bugfix, please open a GitHub issue.*
