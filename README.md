@@ -15,7 +15,7 @@ Install Pyinstaller and PyQt5. CD into the root CmdDeployer folder where CmdDepl
 From here, run the following command to create the exe installer:
 
 ```
-pyinstaller --uac-admin --windowed --clean CmdDeployer.py --icon dependencies\iconlogo.ico
+pyinstaller --uac-admin --windowed --clean CmdDeployer.py --icon dependencies\logo.ico
 ```
 
 It is adviced to avoid the --onefile option using Pyinstaller, since this increases startup time significantly.
