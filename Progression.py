@@ -10,7 +10,7 @@ from os import mkdir
 
 from Utils import pingable, cmd_visibility, lambdaf_event, lambdaf, obj_bg, _on_mousewheel, exit_app
 from Settings import fg_one, fg_one, targets_loc, buttonback, psexec_loc, temp_cmd_loc, default_workers, suc_color
-from Settings import combobox_loc, err_color, buttongo, test_pings, max_output_length, bg_two, bg_one, max_output
+from Settings import combobox_loc, buttongo, test_pings, max_output_length, bg_two, bg_one, max_output
 import Settings
 
 class Progression(Frame):
@@ -233,8 +233,8 @@ class Progression(Frame):
 
         # Verify ping connection
         if remote and (not pingable(hostname, test_pings)):
-            connection.config(text='X', fg=err_color)
-            errorlevel.config(text="NO PING", fg=err_color)
+            connection.config(text='X', fg="#b24531")
+            errorlevel.config(text="NO PING", fg="#b24531")
         else:
             if remote:
                 connection.config(text="✔", fg=suc_color)
@@ -263,7 +263,7 @@ class Progression(Frame):
                     args=(hostname, errorlevel, process), daemon=True).start())
                 self.killbuttons.append(killbutton)
                 killbutton.bind('<Enter>', lambdaf_event(
-                    obj_bg, status_name_, err_color), add="+")
+                    obj_bg, status_name_, "#b24531"), add="+")
                 killbutton.bind('<Leave>', lambdaf_event(
                     obj_bg, status_name_, bg_two), add="+")
                 killbutton.bind("<Enter>", lambda event: event.widget.config(
@@ -307,7 +307,7 @@ class Progression(Frame):
                         break
                     if line.startswith('The handle is invalid')\
                             or line.startswith("De ingang is ongeldig"):
-                        errorlevel.config(text="ERROR", fg=err_color)
+                        errorlevel.config(text="ERROR", fg="#b24531")
                         break
 
                 # Delete last line with a newline
@@ -341,7 +341,7 @@ class Progression(Frame):
                 continue
             else:
                 print(line)
-        errorlevel.config(text="KILLED", fg=err_color)
+        errorlevel.config(text="KILLED", fg="#b24531")
 
     def target_finalization(self, status_name_, hostname, killbutton, start_time, runtime):
         status_name_.config(bg=bg_two, fg=suc_color)
@@ -358,7 +358,7 @@ class Progression(Frame):
         text = "OKAY"
         for level in levels:
             if not level in [0, 1641, 3010]:
-                return err_color, "ERROR"
+                return "#b24531", "ERROR"
             elif level in [1641, 3010]:
                 color = 'orange'
                 text = "REBOOT"
