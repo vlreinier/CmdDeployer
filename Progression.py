@@ -9,7 +9,7 @@ from os.path import exists, dirname
 from os import mkdir
 
 from Utils import pingable, cmd_visibility, lambdaf_event, lambdaf, obj_bg, _on_mousewheel, exit_app
-from Settings import fg_one, fg_one, targets_loc, buttonback, psexec_loc, temp_cmd_loc, default_workers
+from Settings import fg_one, fg_one, targets_loc, buttonback, psexec_loc, temp_cmd_loc, default_workers, suc_color
 from Settings import combobox_loc, err_color, buttongo, test_pings, max_output_length, bg_two, bg_one, max_output
 import Settings
 
@@ -115,7 +115,7 @@ class Progression(Frame):
         footer.grid(row=4, sticky='news', padx=5, pady=5)
         style = Style()
         style.theme_use('alt')
-        style.configure("green.Horizontal.TProgressbar", foreground='#7fff7f', background='#7fff7f',
+        style.configure("green.Horizontal.TProgressbar", foreground="#95d895", background="#95d895",
                         troughcolor=bg_two, thickness=19, highlightthickness=0, troughrelief='flat')
         self.progressbar = Progressbar(
             footer, style="green.Horizontal.TProgressbar", mode="determinate")
@@ -237,8 +237,8 @@ class Progression(Frame):
             errorlevel.config(text="NO PING", fg=err_color)
         else:
             if remote:
-                connection.config(text="✔", fg="#008000")
-                errorlevel.config(text="OKAY", fg="#008000")
+                connection.config(text="✔", fg=suc_color)
+                errorlevel.config(text="OKAY", fg=suc_color)
 
             # Include execution and outputting of Batch commands
             if incl_execute:
@@ -344,7 +344,7 @@ class Progression(Frame):
         errorlevel.config(text="KILLED", fg=err_color)
 
     def target_finalization(self, status_name_, hostname, killbutton, start_time, runtime):
-        status_name_.config(bg=bg_two, fg="#008000")
+        status_name_.config(bg=bg_two, fg=suc_color)
         killbutton.unbind('<Enter>')
         killbutton.unbind('<Leave>')
         killbutton.config(state='disabled', cursor='arrow', font=("Verdana", 9, ""))
@@ -354,7 +354,7 @@ class Progression(Frame):
         print(f"TERMINATED THREAD FOR: {hostname}")
 
     def get_err_color_text(self, levels):
-        color = "#008000"
+        color = suc_color
         text = "OKAY"
         for level in levels:
             if not level in [0, 1641, 3010]:
@@ -442,7 +442,7 @@ class Progression(Frame):
                                 font=('Verdana', 9), bg=bg_two)
             status_name.grid(row=0, column=0, sticky='ew')
             status_name_ = Label(status_name_frame, text=hostname, anchor='w', borderwidth=1, relief="flat",
-                                font=('Verdana', 9), bg=bg_two, width=8)
+                                font=('Verdana', 9, 'bold'), bg=bg_two, width=8)
             status_name_.grid(row=0, column=1, sticky='ew')
             connection_frame = Frame(status_frame, bg=bg_two)
             connection_frame.grid(row=0, column=3, sticky='ew')
@@ -450,7 +450,7 @@ class Progression(Frame):
                 connection_frame, text="Ping:", font=('Verdana', 9), bg=bg_two, anchor='w')
             connection.grid(row=0, column=1, sticky='ew')
             connection_ = Label(
-                connection_frame, font=('Verdana', 9), text='-', bg=bg_two, anchor='w', borderwidth=1, relief="flat", width=3)
+                connection_frame, font=('Verdana', 9, 'bold'), text='-', bg=bg_two, anchor='w', borderwidth=1, relief="flat", width=3)
             connection_.grid(row=0, column=2, sticky='ew')
             errorlevel_frame = Frame(status_frame, bg=bg_two)
             errorlevel_frame.grid(row=0, column=4)
@@ -459,7 +459,7 @@ class Progression(Frame):
                 errorlevel_frame, text="State:", font=('Verdana', 9), bg=bg_two, anchor='w')
             errorlevel.grid(row=0, column=0, sticky='ew')
             errorlevel_ = Label(
-                errorlevel_frame, text="RUNNING", font=('Verdana', 9), bg=bg_two, anchor='w', borderwidth=1, relief="flat", width=8)
+                errorlevel_frame, text="RUNNING", font=('Verdana', 9, 'bold'), bg=bg_two, anchor='w', borderwidth=1, relief="flat", width=8)
             errorlevel_.grid(row=0, column=1, sticky='ew')
             runtime_frame = Frame(status_frame, bg=bg_two)
             runtime_frame.grid(row=0, column=2, sticky='ew')
@@ -467,8 +467,8 @@ class Progression(Frame):
             runtime = Label(
                 runtime_frame, text="Runtime:", font=('Verdana', 9), bg=bg_two, anchor='e')
             runtime.grid(row=0, column=0, sticky='ew')
-            runtime_ = Label(runtime_frame,  font=('Verdana', 9), bg=bg_two, anchor='w',
-                borderwidth=1, relief="flat", width=3, text='-', fg="#008000")
+            runtime_ = Label(runtime_frame,  font=('Verdana', 9, 'bold'), bg=bg_two, anchor='w',
+                borderwidth=1, relief="flat", width=3, text='-', fg=suc_color)
             runtime_.grid(row=0, column=1, sticky='ew')
             killbutton = Button(status_frame,  text="Kill", font=('Verdana', 9), bg=bg_two, anchor='e',
                         relief="flat", activebackground=bg_two, bd=0, state='disabled', width=3)

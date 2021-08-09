@@ -189,7 +189,7 @@ class Selection(Frame):
 
     def init_app(self):
         self.checkbuttons(self.installation_canvas,
-                          self.installation_groups, Settings.installations, suc_color)
+                          self.installation_groups, Settings.installations, "#95d895")
         self.checkbuttons(self.deletion_canvas,
                           self.deletion_groups, Settings.deletions, err_color)
         if start_frame.lower() == 'textinput':
@@ -293,7 +293,7 @@ class Selection(Frame):
         new_cols = round(event.width / min_button_width)
         if self.current_cols != new_cols:
             self.checkbuttons(self.installation_canvas, self.installation_groups,
-                              Settings.installations, suc_color, new_cols)
+                              Settings.installations, "#95d895", new_cols)
             self.checkbuttons(self.deletion_canvas, self.deletion_groups,
                               Settings.deletions, err_color, new_cols)
             self.current_cols = new_cols
