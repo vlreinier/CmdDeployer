@@ -61,12 +61,12 @@ class Progression(Frame):
         self.kill_process_button.grid(row=0, column=2, sticky='e')
 
         # Remote
-        self.remote_frame = Frame(self, bg=bg_one, highlightthickness=2, highlightbackground=bg_one)
+        self.remote_frame = Frame(self, bg=bg_one)
         self.remote_frame.grid(row=2, sticky='news', padx=10)
         self.remote_frame.columnconfigure(0, weight=3)
         self.remote_frame.columnconfigure(2, weight=1)
-        self.remote_checkbutton = Checkbutton(self.remote_frame, highlightthickness=2, activebackground=bg_one, text='Remote deployment', font=('Verdana', 8), relief='flat', variable=self.remote_var,
-                                         fg=fg_one, bg=bg_one, cursor='hand2', command=self.set_execution_type, bd=0, anchor='w', width=30)
+        self.remote_checkbutton = Checkbutton(self.remote_frame, activebackground=bg_one, text='Remote deployment', font=('Verdana', 8), relief='flat', variable=self.remote_var,
+                                         fg=fg_one, bg=bg_one, cursor='hand2', command=self.set_execution_type, bd=3, anchor='w', width=30)
         self.remote_checkbutton.grid(row=0, column=0, sticky='ew')
         self.remote_checkbutton.bind("<Enter>", lambda event: event.widget.config(
             font=('Verdana', 8, 'underline')))
