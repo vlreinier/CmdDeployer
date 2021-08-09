@@ -1,26 +1,30 @@
-from os import path
-
-from Utils import cmd_visibility
-from Container import FrameContainer
-from Settings import logo_loc, config_loc, width_perc, height_perc, min_width, min_height
+import logging
+import Container
+import Settings
+import os
 
 if __name__ == "__main__":
-    if path.isfile(config_loc):
-
-        #cmd_visibility()
-        root = FrameContainer()
-        root.title("Command Deployer")
-
-        if path.isfile(logo_loc):
-            root.iconbitmap(logo_loc)
-
-        screenwidth = root.winfo_screenwidth()
-        screenheight = root.winfo_screenheight()
-        width = width_perc * screenwidth
-        height = height_perc * screenheight
-        root.geometry("{:0.0f}x{:0.0f}+{:0.0f}+{:0.0f}".format(width, height,
-                      (screenwidth / 2) - (width / 2), (screenheight / 2) - (height / 2)))
-
-        root.minsize(min_width, min_height)
-
-        root.mainloop()
+    if os.path.exists(Settings.logs):
+        os.remove(Settings.logs)
+    logging.basicConfig(
+        filename=Settings.logs,
+        filemode='a',
+        format='%(asctime)s %(levelname)s %(message)s',
+        datefmt='%H:%M:%S',
+        level=logging.INFO,
+    )
+    Settings.logger = logging.getLogger()
+    root = Container.FrameContainer()
+    root.title("Command Deployer")
+    root.iconbitmap(Settings.logo_loc)
+    screenwidth = root.winfo_screenwidth()
+    screenheight = root.winfo_screenheight()
+    width = Settings.width_perc * screenwidth
+    height = Settings.height_perc * screenheight
+    root.geometry("{:0.0f}x{:0.0f}+{:0.0f}+{:0.0f}".format(width, height,
+                    (screenwidth / 2) - (width / 2), (screenheight / 2) - (height / 2)))
+    root.minsize(Settings.min_width, Settings.min_height)
+    root.lift()
+    root.attributes('-topmost',True)
+    root.after_idle(root.attributes,'-topmost',False)
+    root.mainloop()

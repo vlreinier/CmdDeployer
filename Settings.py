@@ -1,7 +1,7 @@
-from configparser import ConfigParser
+import configparser
 
-config = ConfigParser()
-config.read('configuration\\settings.ini')
+config = configparser.ConfigParser()
+config.read('dependencies\\settings.ini')
 temp_cmd_loc = config['DEFAULT']['temp_cmd_loc']
 config_loc = config['DEFAULT']['config_loc']
 targets_loc = config['DEFAULT']['targets_loc']
@@ -12,6 +12,7 @@ buttonnext = config['DEFAULT']['buttonnext']
 buttonclear = config['DEFAULT']['buttonclear']
 buttonback = config['DEFAULT']['buttonback']
 buttongo = config['DEFAULT']['buttongo']
+logs = config['DEFAULT']['logs']
 min_button_width = int(config['DEFAULT']['min_button_width'])
 test_pings = int(config['DEFAULT']['test_pings'])
 default_workers = int(config['DEFAULT']['default_workers'])
@@ -33,3 +34,4 @@ install_state = None
 installations = None
 deletions = None
 text = None
+logger = None

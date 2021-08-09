@@ -1,21 +1,20 @@
-from tkinter import Tk, Frame
+import tkinter
+import Progression
+import Selection
 
-from Progression import Progression
-from Selection import Selection
 
-
-class FrameContainer(Tk):
+class FrameContainer(tkinter.Tk):
     
     def __init__(self, *args, **kwargs):
-        Tk.__init__(self, *args, **kwargs)
+        tkinter.Tk.__init__(self, *args, **kwargs)
         
-        container = Frame(self)
+        container = tkinter.Frame(self)
         container.pack(side="top", fill="both", expand=True)
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
 
         self.frames = {}
-        for i in (Selection, Progression):
+        for i in (Selection.Selection, Progression.Progression):
             frame = i(parent=container, controller=self)
             self.frames[i.__name__] = frame
             frame.grid(row=0, column=0, sticky="nsew")

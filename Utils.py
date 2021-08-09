@@ -1,9 +1,8 @@
-from os import system
-from os.path import exists, dirname
-from ctypes import WinDLL
-from Settings import temp_cmd_loc
-from sys import exit
-from shutil import rmtree
+import os
+import ctypes
+import sys
+import shutil
+import Settings
 
 def obj_bg(obj, bg):
     obj.config(bg=bg)
@@ -18,13 +17,13 @@ def lambdaf(func, *args):
 
 
 def pingable(target, test_pings=4):
-    return system("ping " + f"-n {test_pings} " + target + '| find "TTL=" > nul') == 0
+    return os.system("ping " + f"-n {test_pings} " + target + '| find "TTL=" > nul') == 0
 
 
 def cmd_visibility(option=0):
-    hWnd = WinDLL('kernel32').GetConsoleWindow()
+    hWnd = ctypes.WinDLL('kernel32').GetConsoleWindow()
     if hWnd:
-        WinDLL('user32').ShowWindow(hWnd, option)
+        ctypes.WinDLL('user32').ShowWindow(hWnd, option)
 
 
 def yview(canvas, *args):
@@ -38,7 +37,7 @@ def _on_mousewheel(event, canvas):
 
 
 def exit_app():
-    dir_name = dirname(temp_cmd_loc)
-    if exists(dir_name):
-        rmtree(dir_name, ignore_errors=True)
-    exit()
+    dir_name = os.path.dirname(Settings.temp_cmd_loc)
+    if os.path.exists(dir_name):
+        shutil.rmtree(dir_name, ignore_errors=True)
+    sys.exit()
