@@ -41,3 +41,10 @@ def exit_app():
     if os.path.exists(dir_name):
         shutil.rmtree(dir_name, ignore_errors=True)
     sys.exit()
+
+
+def is_admin():
+    try:
+        return ctypes.windll.shell32.IsUserAnAdmin()
+    except:
+        return False

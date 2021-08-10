@@ -237,7 +237,8 @@ class Progression(tkinter.Frame):
 
                 # Create process
                 cmd = self.psexec_command_for_file(remote, hostname)
-                process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                    shell=True, creationflags=subprocess.CREATE_NO_WINDOW)
 
                 # Killbutton config command
                 if self.kill:
