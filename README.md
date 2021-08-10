@@ -4,7 +4,7 @@ Python Tkinter application for deploying Batch/CMD and Powershell commands to a 
 This tool is not verified to be perfect, bugfree and threadsafe. A good advice would be to verify the source code when running this program. Suggestions for improvements or extensions are more than welcome :)
 
 ## Compiling CmdDeployer to .exe
-The app can be compiled using a multitude of modules.
+The app can be compiled using a variety of modules. It is adviced to avoid compiling to one file since this increases startup time significantly, and it makes configuring and maintaining the app harder..
 
 ### pyinstaller
 Install Pyinstaller and PyQt5. CD into the root CmdDeployer folder where CmdDeployer.py is located.<br>
@@ -12,7 +12,6 @@ From here, run the following command to create the exe installer:
 ```
 pyinstaller --uac-admin --clean CmdDeployer.py --icon dependencies\logo.ico
 ```
-It is adviced to avoid the --onefile option using Pyinstaller, since this increases startup time significantly.
 
 ### cx_freeze
 Install cx_Freeze and PyQt5. CD into the root CmdDeployer folder where CmdDeployer.py is located.<br>
