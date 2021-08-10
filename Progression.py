@@ -6,7 +6,8 @@ import subprocess
 import threading
 import os
 import webbrowser
-
+import sys
+import re
 import Utils
 import Settings
 
@@ -176,7 +177,7 @@ class Progression(tkinter.Frame):
         dir_name = os.path.dirname(Settings.temp_cmd_loc)
         if not os.path.exists(dir_name):
             os.mkdir(dir_name)
-        with open(Settings.temp_cmd_loc, 'w') as cmd:
+        with open(Settings.temp_cmd_loc, 'w', encoding=sys.getfilesystemencoding()) as cmd:
             cmd.write(f'@echo off{sep}echo Starting time:%TIME%{sep}')
             if Settings.install_state == "Textinput":
                 cmd.write(Settings.text + sep)
@@ -202,25 +203,16 @@ class Progression(tkinter.Frame):
         else:
             return [Settings.psexec_loc, "-c", "-f", "-s", "-accepteula", "-nobanner", Settings.temp_cmd_loc]
 
-    def remove_leading_whitespaces(self, line, chars):
-        while len(line) > 0 and not line[0].lower() in chars:
-            line = line[1:]
-        return line
-
     def decode(self, line):
-        chars = 'abcdefghijklmnpoqrstuvwxyz0123456789~`!@#$%^&*()_-+={}|[]\:";\'<>?,./'
-        utf8 = self.remove_leading_whitespaces(
-            line.decode(encoding='UTF-8', errors='ignore'), chars)
-        if len(utf8) > 1 and not utf8[1].lower() in chars:
-            if len(utf8) > 3 and not utf8[3].lower() in chars:
-                return line.decode(encoding='UTF-16', errors='ignore') + "\n"
-        return utf8
+        if b'\x00' in line and not b'\r' in line:
+            return line.decode('utf-16-le', errors='replace')[:-1]
+        else:
+            return line.replace(b"\x00\r\x00", b"").decode('utf-8', errors='replace')
 
     def init_target_deployment(self, status_name_, output_button, killbutton, hostname, incl_execute, connection,
                         errorlevel, runtime, outputlabel, n_targets, remote):
         Settings.logger.info(f"INITIATED THREAD FOR: {hostname}")
         start_time = time.time()
-
         # Verify ping connection
         if remote and (not Utils.pingable(hostname, Settings.test_pings)):
             connection.config(text='X', fg="#b24531")
@@ -237,7 +229,7 @@ class Progression(tkinter.Frame):
                     font=('Verdana', 9, 'underline')))
                 output_button.bind("<Leave>", lambda event: event.widget.config(
                     font=('Verdana', 9, '')))
-                if n_targets < 4 and not self.kill:
+                if n_targets < 3 and not self.kill:
                     output_button.invoke()
 
                 # Create process
