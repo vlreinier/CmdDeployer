@@ -8,14 +8,14 @@ A good advice would be to verify the source code when running this program.<br>
 Suggestions for improvements or extensions are more than welcome. To contribute code or issue a bugfix, please open a GitHub issue.
 
 ## Compiling CmdDeployer to .exe
-The app can be compiled using a multitude of modules. Make sure to use the UAC (admin) and windowed option. UAC will prompt for (admin) credentials and windowed will hide the CMD window.
+The app can be compiled using a multitude of modules.
 Here the process for Pyinstaller is described:
 
 Install Pyinstaller and PyQt5. CD into the root CmdDeployer folder where CmdDeployer.py is located.<br>
 From here, run the following command to create the exe installer:
 
 ```
-pyinstaller --uac-admin --windowed --clean CmdDeployer.py --icon dependencies\logo.ico
+pyinstaller --uac-admin --clean CmdDeployer.py --icon dependencies\logo.ico
 ```
 
 It is adviced to avoid the --onefile option using Pyinstaller, since this increases startup time significantly.

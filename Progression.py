@@ -213,6 +213,7 @@ class Progression(tkinter.Frame):
                         errorlevel, runtime, outputlabel, n_targets, remote):
         Settings.logger.info(f"INITIATED THREAD FOR: {hostname}")
         start_time = time.time()
+        
         # Verify ping connection
         if remote and (not Utils.pingable(hostname, Settings.test_pings)):
             connection.config(text='X', fg="#b24531")
