@@ -20,10 +20,10 @@ def pingable(target, test_pings=4):
     return os.system("ping " + f"-n {test_pings} " + target + '| find "TTL=" > nul') == 0
 
 
-def cmd_visibility(option=0):
+def cmd_visibility(show=True):
     hWnd = ctypes.WinDLL('kernel32').GetConsoleWindow()
     if hWnd:
-        ctypes.WinDLL('user32').ShowWindow(hWnd, option)
+        ctypes.WinDLL('user32').ShowWindow(hWnd, int(show))
 
 
 def yview(canvas, *args):

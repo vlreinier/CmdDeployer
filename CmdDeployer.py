@@ -2,8 +2,13 @@ import logging
 import Container
 import Settings
 import os
+import Utils
 
 if __name__ == "__main__":
+    if os.path.basename(os.path.dirname(os.getcwd())) == 'GitHub':
+        Utils.cmd_visibility(show=True)
+    else:
+        Utils.cmd_visibility(show=False)
     if not os.path.exists(Settings.logdir):
         os.mkdir(Settings.logdir)
     Settings.logfile = os.path.join(Settings.logdir, os.environ['COMPUTERNAME'] + ".log")

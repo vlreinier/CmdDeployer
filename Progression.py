@@ -198,8 +198,10 @@ class Progression(tkinter.Frame):
             return str(seconds // 60) + ' min ' + str(seconds % 60) + ' sec'
 
     def psexec_command_for_file(self, remote, target):
+        psexec_timeout = str(10)
         if remote:
-            return [Settings.psexec_loc, f"\\\\{target}", "-n 10", "-c", "-f", "-s", "-accepteula", "-nobanner", Settings.temp_cmd_loc]
+            return [Settings.psexec_loc, f"\\\\{target}", "-n", psexec_timeout, "-c",
+                        "-f", "-s", "-accepteula", "-nobanner", Settings.temp_cmd_loc]
         else:
             return [Settings.psexec_loc, "-c", "-f", "-s", "-accepteula", "-nobanner", Settings.temp_cmd_loc]
 
@@ -242,8 +244,8 @@ class Progression(tkinter.Frame):
                     self.kill_target(hostname, errorlevel, process)
                     self.target_finalization(status_name_, hostname, killbutton, start_time, runtime)
                     return
-                killbutton.config(cursor='hand2', state='normal', command=lambda: threading.Thread(target=self.kill_target,
-                    args=(hostname, errorlevel, process), daemon=True).start())
+                killbutton.config(cursor='hand2', state='normal', command=lambda: threading.Thread(
+                    target=self.kill_target, args=(hostname, errorlevel, process), daemon=True).start())
                 self.killbuttons.append(killbutton)
                 killbutton.bind('<Enter>', Utils.lambdaf_event(
                     Utils.obj_bg, status_name_, "#b24531"), add="+")
