@@ -21,7 +21,6 @@ pyinstaller --uac-admin --clean CmdDeployer.py --icon dependencies\logo.ico
 It is adviced to avoid the --onefile option using Pyinstaller, since this increases startup time significantly.
 
 ## Running CmdDeployer uncompiled
-First make sure cmd_visibility() in CmdDeployer.py is commented out, or the app will hide the terminal used to start the app.<br>
 CD into the root CmdDeployer folder where CmdDeployer.py is located, and execute the following command:
 ```
 python CmdDeployer.py
