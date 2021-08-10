@@ -205,9 +205,9 @@ class Progression(tkinter.Frame):
 
     def decode(self, line):
         if b'\x00' in line and not b'\r' in line:
-            return line.decode('utf-16-le', errors='replace')[:-1]
+            return line.decode('utf-16-le', errors='ignore')
         else:
-            return line.replace(b"\x00\r\x00", b"").decode('utf-8', errors='replace')
+            return line.replace(b"\x00\r\x00", b"").decode('utf-8', errors='ignore')
 
     def init_target_deployment(self, status_name_, output_button, killbutton, hostname, incl_execute, connection,
                         errorlevel, runtime, outputlabel, n_targets, remote):
