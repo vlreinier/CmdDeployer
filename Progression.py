@@ -132,8 +132,8 @@ class Progression(tkinter.Frame):
         self.start_button.image = start_image
 
     def open_log(self):
-        if os.path.exists(Settings.logs):
-            webbrowser.open(Settings.logs)
+        if os.path.exists(Settings.logfile):
+            webbrowser.open(Settings.logfile)
 
     def update_targets_field(self):
         if self.use_file_var.get():

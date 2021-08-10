@@ -6,11 +6,11 @@ import os
 if __name__ == "__main__":
     if not os.path.exists(Settings.logdir):
         os.mkdir(Settings.logdir)
-    logfile = os.path.join(Settings.logdir, os.environ['COMPUTERNAME'] + ".log")
-    if os.path.exists(logfile):
-        os.remove(logfile)
+    Settings.logfile = os.path.join(Settings.logdir, os.environ['COMPUTERNAME'] + ".log")
+    if os.path.exists(Settings.logfile):
+        os.remove(Settings.logfile)
     logging.basicConfig(
-        filename=logfile,
+        filename=Settings.logfile,
         filemode='a',
         format='%(asctime)s %(levelname)s %(message)s',
         datefmt='%H:%M:%S',

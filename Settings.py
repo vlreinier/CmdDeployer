@@ -35,3 +35,4 @@ installations = None
 deletions = None
 text = None
 logger = None
+logfile = None
