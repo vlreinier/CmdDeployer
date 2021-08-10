@@ -1,11 +1,7 @@
 # CmdDeployer
-Python Tkinter application for deploying Batch/CMD and Powershell commands to a local machine or multiple remote machines.<br>
-This app uses Tkinter as a GUI and Psexec.exe and Python module subprocess to execute commands remotely, and redirect cmd output.<br>
-No external libraries are required for running the app without compiling it to an standalone executable (at least when using Python 3.8).
+Python Tkinter application for deploying Batch/CMD and Powershell commands to a local machine or multiple remote machines. This app uses Tkinter as a GUI and Psexec.exe and Python module subprocess to execute commands remotely, and redirect cmd output. No external libraries are required for running the app without compiling it to an standalone executable (at least when using Python 3.8).
 
-This tool can be very usefull for system admins, but it is not created and verified to be perfect, bugfree and threadsafe.<br>
-A good advice would be to verify the source code when running this program.<br>
-Suggestions for improvements or extensions are more than welcome. To contribute code or issue a bugfix, please open a GitHub issue.
+This tool is not verified to be perfect, bugfree and threadsafe. A good advice would be to verify the source code when running this program. Suggestions for improvements or extensions are more than welcome :)
 
 ## Compiling CmdDeployer to .exe
 The app can be compiled using a multitude of modules.
@@ -27,13 +23,7 @@ python CmdDeployer.py
 ```
 
 ## Running CmdDeployer compiled
-To run the app, place dependencies folder into the compilation output folder.<br>
-The app CmdDeployer.exe can be run from this folder.<br>
-The CmdDeployer folder within dist (or a different compilation output folder) can be moved to a different desired location.<br>
-Startup credentials used to open the app are also used for remote excecution with Psexec.<br>
+To run the app, place dependencies folder into the compilation output folder. The app CmdDeployer.exe can be run from this folder. The CmdDeployer folder within dist (or a different compilation output folder) can be moved to a different location.
 
 ## Configuring installation and deletion commands
-For configuring the app the Excel file located at dependencies\Configuration.xlsx can be used.<br>
-This file is used for storing Batch/CMD and Powershell commands used for installations and deletions.<br>
-Always use 'call [app]' for starting a process from a command.<br>
-Settings.ini is also for configuring certain app elements and layout.<br>
+For configuring the app the Excel file located at dependencies\Configuration.xlsx can be used. This file is used for storing Batch/CMD and Powershell commands used for installations and deletions. Always use 'call [app]' for starting a process from a command.

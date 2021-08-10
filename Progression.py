@@ -7,7 +7,7 @@ import threading
 import os
 import webbrowser
 import sys
-import re
+
 import Utils
 import Settings
 
