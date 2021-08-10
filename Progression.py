@@ -198,9 +198,9 @@ class Progression(tkinter.Frame):
 
     def psexec_command_for_file(self, remote, target):
         if remote:
-            return f'{Settings.psexec_loc} \\\\{target} -n 10 -c -f -s -accepteula -nobanner {Settings.temp_cmd_loc}'
+            return [Settings.psexec_loc, f"\\\\{target}", "-n 10", "-c", "-f", "-s", "-accepteula", "-nobanner", Settings.temp_cmd_loc]
         else:
-            return f"{Settings.psexec_loc} -c -f -s -accepteula -nobanner {Settings.temp_cmd_loc}"
+            return [Settings.psexec_loc, "-c", "-f", "-s", "-accepteula", "-nobanner", Settings.temp_cmd_loc]
 
     def remove_leading_whitespaces(self, line, chars):
         while len(line) > 0 and not line[0].lower() in chars:
@@ -264,12 +264,11 @@ class Progression(tkinter.Frame):
                 # Start and read process
                 height = 0
                 errorlevels = set()
-
                 while True:
                     time.sleep(0.08)
-                    line = process.stdout.readline()
 
                     # End loop or skip line
+                    line = process.stdout.readline()
                     if not line:
                         break
                     line = self.decode(line).rstrip()
