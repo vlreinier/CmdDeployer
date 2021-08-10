@@ -257,7 +257,7 @@ class Progression(tkinter.Frame):
                 height = 0
                 errorlevels = set()
                 while True:
-                    time.sleep(0.08)
+                    time.sleep(0.05)
 
                     # End loop or skip line
                     line = process.stdout.readline()
