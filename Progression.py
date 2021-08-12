@@ -112,7 +112,7 @@ class Progression(tkinter.Frame):
         footer.grid(row=4, sticky='news', padx=5, pady=5)
         style = Style()
         style.theme_use('alt')
-        style.configure("green.Horizontal.TProgressbar", foreground="#95d895", background="#95d895",
+        style.configure("green.Horizontal.TProgressbar", foreground=Settings.green_one, background=Settings.green_one,
                         troughcolor=Settings.bg_two, thickness=19, highlightthickness=0, troughrelief='flat')
         self.progressbar = Progressbar(
             footer, style="green.Horizontal.TProgressbar", mode="determinate")
@@ -218,12 +218,12 @@ class Progression(tkinter.Frame):
         
         # Verify ping connection
         if remote and (not Utils.pingable(hostname, Settings.test_pings)):
-            connection.config(text='X', fg="#b24531")
-            errorlevel.config(text="NO PING", fg="#b24531")
+            connection.config(text='X', fg=Settings.red_three)
+            errorlevel.config(text="NO PING", fg=Settings.red_three)
         else:
             if remote:
-                connection.config(text="✔", fg=Settings.suc_color)
-                errorlevel.config(text="OKAY", fg=Settings.suc_color)
+                connection.config(text="✔", fg=Settings.green_three)
+                errorlevel.config(text="OKAY", fg=Settings.green_three)
 
             # Include execution and outputting of Batch commands
             if incl_execute:
@@ -249,7 +249,7 @@ class Progression(tkinter.Frame):
                     target=self.kill_target, args=(hostname, errorlevel, process), daemon=True).start())
                 self.killbuttons.append(killbutton)
                 killbutton.bind('<Enter>', Utils.lambdaf_event(
-                    Utils.obj_bg, status_name_, "#b24531"), add="+")
+                    Utils.obj_bg, status_name_, Settings.red_three), add="+")
                 killbutton.bind('<Leave>', Utils.lambdaf_event(
                     Utils.obj_bg, status_name_, Settings.bg_two), add="+")
                 killbutton.bind("<Enter>", lambda event: event.widget.config(
@@ -292,7 +292,7 @@ class Progression(tkinter.Frame):
                         break
                     if line.startswith('The handle is invalid')\
                             or line.startswith("De ingang is ongeldig"):
-                        errorlevel.config(text="ERROR", fg="#b24531")
+                        errorlevel.config(text="ERROR", fg=Settings.red_three)
                         break
 
                 # Delete last line with a newline
@@ -326,10 +326,10 @@ class Progression(tkinter.Frame):
                 continue
             else:
                 Settings.logger.info(line)
-        errorlevel.config(text="KILLED", fg="#b24531")
+        errorlevel.config(text="KILLED", fg=Settings.red_three)
 
     def target_finalization(self, status_name_, hostname, killbutton, start_time, runtime):
-        status_name_.config(bg=Settings.bg_two, fg=Settings.suc_color)
+        status_name_.config(bg=Settings.bg_two, fg=Settings.green_three)
         killbutton.unbind('<Enter>')
         killbutton.unbind('<Leave>')
         killbutton.config(state='disabled', cursor='arrow', font=("Verdana", 9, ""))
@@ -339,11 +339,11 @@ class Progression(tkinter.Frame):
         Settings.logger.info(f"TERMINATED THREAD FOR: {hostname}")
 
     def get_err_color_text(self, levels):
-        color = Settings.suc_color
+        color = Settings.green_three
         text = "OKAY"
         for level in levels:
             if not level in [0, 1641, 3010]:
-                return "#b24531", "ERROR"
+                return Settings.red_three, "ERROR"
             elif level in [1641, 3010]:
                 color = 'orange'
                 text = "REBOOT"
@@ -453,7 +453,7 @@ class Progression(tkinter.Frame):
                 runtime_frame, text="Runtime:", font=('Verdana', 9), bg=Settings.bg_two, anchor='e')
             runtime.grid(row=0, column=0, sticky='ew')
             runtime_ = tkinter.Label(runtime_frame,  font=('Verdana', 9, 'bold'), bg=Settings.bg_two, anchor='w',
-                borderwidth=1, relief="flat", width=3, text='-', fg=Settings.suc_color)
+                borderwidth=1, relief="flat", width=3, text='-', fg=Settings.green_three)
             runtime_.grid(row=0, column=1, sticky='ew')
             killbutton = tkinter.Button(status_frame,  text="Kill", font=('Verdana', 9), bg=Settings.bg_two, anchor='e',
                         relief="flat", activebackground=Settings.bg_two, bd=0, state='disabled', width=3)

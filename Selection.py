@@ -184,9 +184,9 @@ class Selection(tkinter.Frame):
 
         # Init app
         self.checkbuttons(self.installation_canvas, self.installation_groups, self.installation_checkbuttons_groups,
-            Settings.installations, "#95d895", Settings.init_cols)
+            Settings.installations, Settings.green_one, Settings.green_two, Settings.init_cols)
         self.checkbuttons(self.deletion_canvas, self.deletion_groups, self.installation_checkbuttons_groups,
-            Settings.deletions, Settings.err_color, Settings.init_cols)
+            Settings.deletions, Settings.red_one, Settings.red_two, Settings.init_cols)
         if Settings.start_frame.lower() == 'textinput':
             self.textfield_mode()
         elif Settings.start_frame.lower() == 'deletion':
@@ -230,7 +230,7 @@ class Selection(tkinter.Frame):
             for package in valid_packages:
                 packages[package][0].set(1)
 
-    def checkbuttons(self, canvas, groups, checkbuttons_groups, packages, select_color, num_columns=1):
+    def checkbuttons(self, canvas, groups, checkbuttons_groups, packages, select_color, hover_color, num_columns=1):
         canvas.delete('all')
         final = tkinter.Frame(canvas)
         final.grid_columnconfigure(0, weight=1)
@@ -238,7 +238,7 @@ class Selection(tkinter.Frame):
             checkbuttons = []
             valid_packages = list(
                 filter(lambda p: p in packages, groups[group]))
-            total_package_frame = tkinter.Frame(final)
+            total_package_frame = tkinter.Frame(final, bg='white')
             total_package_frame.grid(sticky='news')
             total_package_frame.grid_columnconfigure(0, weight=1)
             group_button_var = tkinter.BooleanVar(value=False)
@@ -257,7 +257,7 @@ class Selection(tkinter.Frame):
                 checkbutton = tkinter.Checkbutton(package_frame, bg='white', text=package, bd=0, indicatoron=0, width=1, anchor='w', highlightthickness=4,
                                           cursor='hand2', variable=packages[package][0], relief='flat', font=('Verdana', 10), selectcolor=select_color)
                 checkbutton.bind("<Enter>", lambda event: event.widget.config(
-                    font=('Verdana', 10, 'underline'), bg=select_color))
+                    font=('Verdana', 10, 'underline'), bg=hover_color))
                 checkbutton.bind("<Leave>", lambda event: event.widget.config(
                     font=('Verdana', 10, ''), bg='white'))
                 checkbutton.grid(row=rows, column=cols,
