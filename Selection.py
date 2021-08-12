@@ -304,17 +304,17 @@ class Selection(tkinter.Frame):
             rows, cols = 1, 0
             group = []
             for btn in _group:
-                btn.grid_remove()
                 if btn['state'] == 'normal':
                     group.append(btn)
-
+                else:
+                    btn.grid_remove()
+            self.checkbuttons_groups[i] = (group, frame)
             for checkbutton in group:
                 checkbutton.grid(row=rows, column=cols)
                 cols += 1
                 if cols == newcols:
                     rows += 1
                     cols = 0
-                    
             if len(group) < newcols:
                 for _ in range(newcols - len(group)):
                     checkbutton = tkinter.Checkbutton(frame, width=1, bg='white', state='disabled', highlightthickness=4,
@@ -322,7 +322,6 @@ class Selection(tkinter.Frame):
                     checkbutton.grid(row=rows, column=cols, pady=3, padx=3, sticky='news')
                     self.checkbuttons_groups[i][0].append(checkbutton)
                     cols += 1
-
             for i in range(self.current_cols):
                 frame.grid_columnconfigure(i, weight=0)
             for i in range(newcols):
