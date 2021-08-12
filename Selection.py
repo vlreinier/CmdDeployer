@@ -230,12 +230,12 @@ class Selection(tkinter.Frame):
                 packages[package][0].set(1)
 
     def checkbuttons(self, canvas, groups, packages, select_color, num_columns=1):
-        self.checkbutton_locations = []
+        self.checkbuttons_groups = []
         canvas.delete('all')
         final = tkinter.Frame(canvas)
         final.grid_columnconfigure(0, weight=1)
         for group in groups:
-            checkbutton_grids = []
+            checkbuttons = []
             valid_packages = list(
                 filter(lambda p: p in packages, groups[group]))
             total_package_frame = tkinter.Frame(final)
@@ -262,7 +262,7 @@ class Selection(tkinter.Frame):
                     font=('Verdana', 10, '')))
                 checkbutton.grid(row=rows, column=cols,
                                  pady=3, padx=3, sticky='news')
-                checkbutton_grids.append(checkbutton)
+                checkbuttons.append(checkbutton)
                 cols += 1
                 if cols == num_columns:
                     rows += 1
@@ -272,11 +272,11 @@ class Selection(tkinter.Frame):
                     checkbutton = tkinter.Checkbutton(package_frame, width=1, bg='white', state='disabled', highlightthickness=4,
                                               bd=0, indicatoron=0, anchor='w', relief='flat', font=('Verdana', 10))
                     checkbutton.grid(row=rows, column=cols, pady=3, padx=3, sticky='news')
-                    checkbutton_grids.append(checkbutton)
+                    checkbuttons.append(checkbutton)
                     cols += 1
             for i in range(num_columns):
                 package_frame.grid_columnconfigure(i, weight=1)
-            self.checkbutton_locations.append((checkbutton_grids, package_frame))
+            self.checkbuttons_groups.append((checkbuttons, package_frame))
         window = canvas.create_window((0, 0), window=final, anchor='nw')
         canvas.bind('<Enter>', lambda event: canvas.bind_all(
             "<MouseWheel>", lambda e: Utils._on_mousewheel(e, canvas)))
@@ -300,21 +300,27 @@ class Selection(tkinter.Frame):
             self.startup = False
 
     def regrid_checkbuttons(self, newcols):
-        for i, (group, frame) in enumerate(self.checkbutton_locations):
+        for i, (_group, frame) in enumerate(self.checkbuttons_groups):
             rows, cols = 1, 0
-            group = [btn for btn in group if btn['text'] != '']
+            group = []
+            for btn in _group:
+                btn.grid_remove()
+                if btn['state'] == 'normal':
+                    group.append(btn)
+
             for checkbutton in group:
                 checkbutton.grid(row=rows, column=cols)
                 cols += 1
                 if cols == newcols:
                     rows += 1
                     cols = 0
+                    
             if len(group) < newcols:
                 for _ in range(newcols - len(group)):
                     checkbutton = tkinter.Checkbutton(frame, width=1, bg='white', state='disabled', highlightthickness=4,
                                             bd=0, indicatoron=0, anchor='w', relief='flat', font=('Verdana', 10))
                     checkbutton.grid(row=rows, column=cols, pady=3, padx=3, sticky='news')
-                    self.checkbutton_locations[i][0].append(checkbutton)
+                    self.checkbuttons_groups[i][0].append(checkbutton)
                     cols += 1
 
             for i in range(self.current_cols):
