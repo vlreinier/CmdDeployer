@@ -29,6 +29,7 @@ min_width = int(config['DEFAULT']['min_width'])
 min_height = int(config['DEFAULT']['min_height'])
 max_output_length = int(config['DEFAULT']['max_output_length'])
 max_output = int(config['DEFAULT']['max_output'])
+init_cols = int(config['DEFAULT']['init_cols'])
 
 install_state = None
 installations = None
