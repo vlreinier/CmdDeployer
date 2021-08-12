@@ -178,7 +178,7 @@ class Progression(tkinter.Frame):
         if not os.path.exists(dir_name):
             os.mkdir(dir_name)
         with open(Settings.temp_cmd_loc, 'w', encoding=sys.getfilesystemencoding()) as cmd:
-            cmd.write(f'@echo off{sep}echo Starting time:%TIME%{sep}')
+            cmd.write(f'@echo off{sep}echo Starting time: %TIME%{sep}')
             if Settings.install_state == "Textinput":
                 cmd.write(Settings.text + sep)
             else:
@@ -188,7 +188,7 @@ class Progression(tkinter.Frame):
                         cmd.write("Echo @ " + package + sep + packages[package][1] + sep)
                         cmd.write("Echo ^> {0} of {1} ended with ErrorLevel: %ERRORLEVEL%{2}".format(
                             Settings.install_state, package, sep))
-            cmd.write(f"echo Final ErrorLevel: %ERRORLEVEL%{sep}echo Ending time:%TIME%") 
+            cmd.write(f"echo Final ErrorLevel: %ERRORLEVEL%{sep}echo Ending time: %TIME%") 
 
     def runtime(self, start_time):
         seconds = int(time.time() - start_time)

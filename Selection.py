@@ -186,8 +186,8 @@ class Selection(tkinter.Frame):
         # Init app
         self.checkbuttons(self.installation_canvas, self.installation_groups, Settings.installations,
             "#95d895", Settings.init_cols)
-        # self.checkbuttons(self.deletion_canvas, self.deletion_groups, Settings.deletions,
-        #     Settings.err_color, Settings.init_cols)
+        self.checkbuttons(self.deletion_canvas, self.deletion_groups, Settings.deletions,
+            Settings.err_color, Settings.init_cols)
         if Settings.start_frame.lower() == 'textinput':
             self.textfield_mode()
         elif Settings.start_frame.lower() == 'deletion':
@@ -344,8 +344,8 @@ class Selection(tkinter.Frame):
         Settings.install_state = "Deletion"
 
     def installation_mode(self):
-        # self.deletion_frame.grid_forget()
-        # self.textfield_frame.grid_forget()
+        self.deletion_frame.grid_forget()
+        self.textfield_frame.grid_forget()
         self.installation_frame.grid(row=1, sticky='news', padx=10)
         self.clear_button.config(
             command=lambda: self.remove_selections(Settings.installations))
