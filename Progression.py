@@ -198,9 +198,8 @@ class Progression(tkinter.Frame):
             return str(seconds // 60) + ' min ' + str(seconds % 60) + ' sec'
 
     def psexec_command_for_file(self, remote, target):
-        psexec_timeout = str(10)
         if remote:
-            return [Settings.psexec_loc, f"\\\\{target}", "-n", psexec_timeout, "-c",
+            return [Settings.psexec_loc, f"\\\\{target}", "-c",
                         "-f", "-s", "-accepteula", "-nobanner", Settings.temp_cmd_loc]
         else:
             return [Settings.psexec_loc, "-c", "-f", "-s", "-accepteula", "-nobanner", Settings.temp_cmd_loc]
@@ -237,8 +236,7 @@ class Progression(tkinter.Frame):
 
                 # Create process
                 cmd = self.psexec_command_for_file(remote, hostname)
-                process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                    shell=True, creationflags=subprocess.CREATE_NO_WINDOW)
+                process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
                 # Killbutton config command
                 if self.kill:

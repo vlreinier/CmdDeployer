@@ -14,7 +14,9 @@ pyinstaller --uac-admin --clean CmdDeployer.py --icon dependencies\logo.ico
 ```
 
 ### cx_freeze
-Install cx_Freeze and PyQt5. CD into the root CmdDeployer folder where CmdDeployer.py is located.<br>
+You might want to add parameter shell=True or creationflags=subprocess.CREATE_NO_WINDOW to subprocess.Popen to ensure no cmd console is popping up.
+If you do so, verify if you can run from a network share with correct credentials.
+Install cx_Freeze and PyQt5. CD into the root CmdDeployer folder where CmdDeployer.py is located.
 From here, run the following command to create the exe installer:
 ```
 python Setup.py build
