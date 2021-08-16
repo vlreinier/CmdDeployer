@@ -15,6 +15,7 @@ class Selection(tkinter.Frame):
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=1)
         self.prepare_data()
+        self.current_cols = 0
         self.powershell_var = tkinter.IntVar(self)
 
         ## Header ##
@@ -230,11 +231,11 @@ class Selection(tkinter.Frame):
 
     def place_checkbuttons(self, canvas, groups, packages, select_color, hover_color):
         canvas.delete('all')
-        final = tkinter.Frame(canvas)
-        final.grid_columnconfigure(0, weight=1)
+        main_frame = tkinter.Frame(canvas)
+        main_frame.grid_columnconfigure(0, weight=1)
         for group in groups:
             valid_packages = list(filter(lambda p: p in packages, groups[group]))
-            total_package_frame = tkinter.Frame(final, bd=0, highlightthickness=0)
+            total_package_frame = tkinter.Frame(main_frame, bd=0, highlightthickness=0)
             total_package_frame.grid(sticky='news')
             total_package_frame.grid_columnconfigure(0, weight=1)
             group_button_var = tkinter.BooleanVar(value=False)
@@ -247,32 +248,37 @@ class Selection(tkinter.Frame):
                 font=('Verdana', 8, 'underline')))
             group_button.bind("<Leave>", lambda event: event.widget.config(
                 font=('Verdana', 8, '')))
-            package_frame = tkinter.Text(total_package_frame, bg='white', bd=0, highlightthickness=0, selectbackground='white')
+            _textframe = tkinter.Frame(total_package_frame)
+            _textframe.grid(sticky='news')
+            _textframe.grid_propagate(0)
+            _textframe.grid_columnconfigure(0, weight=1)
+            package_frame = tkinter.Text(_textframe, bg='white', bd=0, highlightthickness=0, selectbackground='white')
             package_frame.grid(sticky='news')
             for package in valid_packages:
-                checkbutton = tkinter.Checkbutton(package_frame, bg='white', text=package, bd=0, indicatoron=0, anchor='w', highlightthickness=4, width=Settings.min_button_width,
-                                          cursor='hand2', variable=packages[package][0], relief='flat', font=('Verdana', 10), selectcolor=select_color)
+                checkbutton = tkinter.Checkbutton(package_frame, bg='white', text=package, bd=0, indicatoron=0,
+                    anchor='w', highlightthickness=4, width=Settings.min_button_width, cursor='hand2',
+                    variable=packages[package][0], relief='flat', font=('Verdana', 10), selectcolor=select_color)
                 checkbutton.bind("<Enter>", lambda event: event.widget.config(
                     font=('Verdana', 10, 'underline'), bg=hover_color))
                 checkbutton.bind("<Leave>", lambda event: event.widget.config(
                     font=('Verdana', 10, ''), bg='white'))
                 package_frame.window_create(tkinter.END, window=checkbutton)
             package_frame.config(state='disabled')
-            package_frame.bind("<Configure>", lambda e: self.adjust_text_height(e, package_frame, checkbutton.winfo_reqwidth()))
-        window = canvas.create_window((0, 0), window=final, anchor='nw')
+            buttonwidth, buttonheight = checkbutton.winfo_reqwidth(), checkbutton.winfo_reqheight()
+            _textframe.bind("<Configure>", lambda e: self.adjust_text_height(e, buttonwidth, buttonheight, len(valid_packages)))
+        window = canvas.create_window((0, 0), window=main_frame, anchor='nw')
         canvas.bind('<Enter>', lambda e: canvas.bind_all("<MouseWheel>", lambda e: Utils._on_mousewheel(e, canvas)))
         canvas.bind('<Leave>', lambda e: canvas.unbind_all("<MouseWheel>"))
-        final.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+        main_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
         canvas.bind("<Configure>", lambda e: canvas.itemconfig(window, width=e.width))
-        canvas.itemconfig(window, width=canvas.winfo_width())
-        canvas.yview_moveto(0)
+        
 
-    def adjust_text_height(self, event, package_frame, buttonwidth):
-        ...
-        #print(event.width, event.height)
-        #package_frame.config(height=1)
-        print(package_frame.winfo_children())
-
+    def adjust_text_height(self, event, buttonwidth, buttonheight, n_buttons):
+        newcols = max(1, event.widget.winfo_width() // buttonwidth)
+        if newcols != self.current_cols:
+            event.widget.config(height=max(buttonheight, buttonheight*(n_buttons%newcols)))
+            self.current_cols = newcols
+            
 
     def textfield_mode(self):
         self.deletion_frame.grid_forget()

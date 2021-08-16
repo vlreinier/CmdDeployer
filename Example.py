@@ -6,7 +6,7 @@ class DynamicGrid(tk.Frame):
         tk.Frame.__init__(self, parent, *args, **kwargs)
         
         self.text = tk.Text(self, wrap="char", borderwidth=0, highlightthickness=0,
-                            state="disabled")
+                            state="disabled", bg='blue')
         self.text.pack(fill="both", expand=True)
         self.boxes = []
 
@@ -26,10 +26,12 @@ class Example(object):
         self.dg = DynamicGrid(self.root, width=500, height=200)
         self.dg.rowconfigure(0, weight=1)
         self.dg.columnconfigure(0, weight=1)
+        self.test = tk.Label(text='hallo')
+        self.test.pack(side="bottom", fill="both", expand=True)
         add_button  = tk.Button(self.root, text="Add", command=self.dg.add_box)
 
         add_button.pack()
-        self.dg.pack(side="top", fill="both", expand=True)
+        self.dg.pack()
 
         # add a few boxes to start
         for i in range(10):
@@ -38,20 +40,4 @@ class Example(object):
     def start(self):
         self.root.mainloop()
 
-#Example().start()
-
-class Example2(object):
-    def __init__(self):
-        root = tk.Tk()
-        self.text = tk.Text(self, wrap="char", borderwidth=0, highlightthickness=0)
-        box = tk.Frame(self.text, bd=1, relief="sunken", background=bg,
-                       width=100, height=100)
-        
-        self.boxes.append(box)
-        self.text.configure(state="normal")
-        self.text.window_create("end", window=box)
-        self.text.configure(state="disabled")
-        self.text.pack(fill="both", expand=True)
-        root.mainloop()
-
-Example2()
+Example().start()
