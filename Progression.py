@@ -280,7 +280,7 @@ class Progression(tkinter.Frame):
                     # Output label insertion
                     height += 1
                     outputlabel.config(state='normal')
-                    outputlabel.insert(tkinter.END, line + "\n")
+                    outputlabel.insert(tkinter.END, line if height == 1 else "\n"+line)
                     if height <= Settings.max_output_length or n_targets == 1:
                         outputlabel.config(height=height)
                     outputlabel.config(state='disabled')
@@ -292,11 +292,6 @@ class Progression(tkinter.Frame):
                             or line.startswith("De ingang is ongeldig"):
                         errorlevel.config(text="ERROR", fg=Settings.red_three)
                         break
-
-                # Delete last line with a newline
-                outputlabel.config(state='normal')
-                outputlabel.delete(f"{height+1}.0")
-                outputlabel.config(state='disabled')
 
         # Finalize deployment
         self.target_finalization(status_name_, hostname, killbutton, start_time, runtime)
