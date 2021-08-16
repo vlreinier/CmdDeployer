@@ -2,6 +2,7 @@ from tkinter.constants import E
 from PIL import Image, ImageTk
 import pandas
 import tkinter
+import math
 
 import Utils
 import Settings
@@ -15,7 +16,6 @@ class Selection(tkinter.Frame):
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=1)
         self.prepare_data()
-        self.current_cols = 0
         self.powershell_var = tkinter.IntVar(self)
 
         ## Header ##
@@ -265,21 +265,20 @@ class Selection(tkinter.Frame):
                 package_frame.window_create(tkinter.END, window=checkbutton)
             package_frame.config(state='disabled')
             buttonwidth, buttonheight = checkbutton.winfo_reqwidth(), checkbutton.winfo_reqheight()
-            _textframe.bind("<Configure>", lambda e: self.adjust_text_height(e, buttonwidth, buttonheight, len(valid_packages)))
+            n_buttons = len(valid_packages)
+            #_textframe.config(height=buttonheight*(n_buttons//.winfo_width() // buttonwidth))
+            _textframe.bind("<Configure>", lambda e, n_buttons=n_buttons: self.adjust_text_height(
+                e, buttonwidth, buttonheight, n_buttons))
         window = canvas.create_window((0, 0), window=main_frame, anchor='nw')
         canvas.bind('<Enter>', lambda e: canvas.bind_all("<MouseWheel>", lambda e: Utils._on_mousewheel(e, canvas)))
         canvas.bind('<Leave>', lambda e: canvas.unbind_all("<MouseWheel>"))
         main_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
         canvas.bind("<Configure>", lambda e: canvas.itemconfig(window, width=e.width))
         
-
     def adjust_text_height(self, event, buttonwidth, buttonheight, n_buttons):
-        newcols = max(1, event.widget.winfo_width() // buttonwidth)
-        if newcols != self.current_cols:
-            event.widget.config(height=max(buttonheight, buttonheight*(n_buttons%newcols)))
-            self.current_cols = newcols
+        newcols = max(1, event.widget.winfo_width()//buttonwidth)
+        event.widget.config(height=buttonheight*math.ceil(n_buttons/newcols))
             
-
     def textfield_mode(self):
         self.deletion_frame.grid_forget()
         self.installation_frame.grid_forget()
