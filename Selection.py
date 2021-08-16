@@ -1,3 +1,4 @@
+from tkinter.constants import E
 from PIL import Image, ImageTk
 import pandas
 import tkinter
@@ -14,7 +15,6 @@ class Selection(tkinter.Frame):
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=1)
         self.prepare_data()
-        self.current_cols = Settings.init_cols
         self.powershell_var = tkinter.IntVar(self)
 
         ## Header ##
@@ -68,7 +68,7 @@ class Selection(tkinter.Frame):
             font=('Verdana', 9, '')))
         group_options.grid(row=0, column=2, sticky='e')
         installation_button_frame = tkinter.Frame(
-            self.installation_frame, highlightthickness=0)
+            self.installation_frame, highlightthickness=0, bd=0)
         installation_button_frame.grid(row=1, sticky="news")
         installation_button_frame.grid_columnconfigure(0, weight=1)
         installation_button_frame.grid_rowconfigure(0, weight=1)
@@ -80,7 +80,7 @@ class Selection(tkinter.Frame):
         self.installation_canvas = tkinter.Canvas(
             installation_canvas_frame, bg="white", highlightthickness=0, scrollregion=(0, 0, 0, 0))
         self.installation_canvas.grid(row=0, column=0, sticky="news")
-        installation_scrollbar_frame = tkinter.Frame(installation_button_frame)
+        installation_scrollbar_frame = tkinter.Frame(installation_button_frame, bd=0, highlightthickness=0)
         installation_scrollbar_frame.grid(row=0, column=1, sticky='news')
         installation_scrollbar_frame.grid_columnconfigure(0, weight=1)
         installation_scrollbar_frame.grid_rowconfigure(0, weight=1)
@@ -183,10 +183,10 @@ class Selection(tkinter.Frame):
         proceed_button.image = proceed_image
 
         # Init app
-        self.checkbuttons(self.installation_canvas, self.installation_groups, self.installation_checkbuttons_groups,
-            Settings.installations, Settings.green_one, Settings.green_two, Settings.init_cols)
-        self.checkbuttons(self.deletion_canvas, self.deletion_groups, self.installation_checkbuttons_groups,
-            Settings.deletions, Settings.red_one, Settings.red_two, Settings.init_cols)
+        self.place_checkbuttons(self.installation_canvas, self.installation_groups,
+            Settings.installations, Settings.green_one, Settings.green_two)
+        self.place_checkbuttons(self.deletion_canvas, self.deletion_groups,
+            Settings.deletions, Settings.red_one, Settings.red_two)
         if Settings.start_frame.lower() == 'textinput':
             self.textfield_mode()
         elif Settings.start_frame.lower() == 'deletion':
@@ -211,8 +211,6 @@ class Selection(tkinter.Frame):
             i: self.installation_groups[i] for i in self.installation_groups if isinstance(i, str)}
         self.deletion_groups = {
             i: self.deletion_groups[i] for i in self.deletion_groups if isinstance(i, str)}
-        self.installation_checkbuttons_groups = []
-        self.deletion_checkbuttons_groups = []
         Settings.install_state = "Installation"
         Settings.installations = {cols.iloc[0]: (tkinter.IntVar(), cols.iloc[1])
             for _, cols in xlsx["Installations"].iterrows() if isinstance(cols.iloc[1], str)}
@@ -230,99 +228,52 @@ class Selection(tkinter.Frame):
             for package in valid_packages:
                 packages[package][0].set(1)
 
-    def checkbuttons(self, canvas, groups, checkbuttons_groups, packages, select_color, hover_color, num_columns=1):
+    def place_checkbuttons(self, canvas, groups, packages, select_color, hover_color):
         canvas.delete('all')
         final = tkinter.Frame(canvas)
         final.grid_columnconfigure(0, weight=1)
         for group in groups:
-            checkbuttons = []
-            valid_packages = list(
-                filter(lambda p: p in packages, groups[group]))
-            total_package_frame = tkinter.Frame(final, bg='white')
+            valid_packages = list(filter(lambda p: p in packages, groups[group]))
+            total_package_frame = tkinter.Frame(final, bd=0, highlightthickness=0)
             total_package_frame.grid(sticky='news')
             total_package_frame.grid_columnconfigure(0, weight=1)
             group_button_var = tkinter.BooleanVar(value=False)
-            group_button = tkinter.Button(total_package_frame, bg=Settings.bg_one, fg=Settings.fg_one, relief='flat', bd=0, highlightthickness=3,
-                                 text=group, anchor='w', font=('Verdana', 8), activebackground=Settings.bg_one, cursor='hand2',
-                                 command=Utils.lambdaf(self.select_group_software, valid_packages, packages, group_button_var))
+            group_button = tkinter.Button(total_package_frame, bg=Settings.bg_one,
+                fg=Settings.fg_one, relief='flat', bd=0, highlightthickness=3, text=group, anchor='w', font=('Verdana', 8), 
+                activebackground=Settings.bg_one, cursor='hand2', command=Utils.lambdaf(self.select_group_software, valid_packages, 
+                packages, group_button_var))
             group_button.grid(sticky='news')
             group_button.bind("<Enter>", lambda event: event.widget.config(
                 font=('Verdana', 8, 'underline')))
             group_button.bind("<Leave>", lambda event: event.widget.config(
                 font=('Verdana', 8, '')))
-            rows, cols = 1, 0
-            package_frame = tkinter.Frame(total_package_frame, bg='white')
-            package_frame.grid(sticky='news', padx=2, pady=2)
+            package_frame = tkinter.Text(total_package_frame, bg='white', bd=0, highlightthickness=0, selectbackground='white')
+            package_frame.grid(sticky='news')
             for package in valid_packages:
-                checkbutton = tkinter.Checkbutton(package_frame, bg='white', text=package, bd=0, indicatoron=0, width=1, anchor='w', highlightthickness=4,
+                checkbutton = tkinter.Checkbutton(package_frame, bg='white', text=package, bd=0, indicatoron=0, anchor='w', highlightthickness=4, width=Settings.min_button_width,
                                           cursor='hand2', variable=packages[package][0], relief='flat', font=('Verdana', 10), selectcolor=select_color)
                 checkbutton.bind("<Enter>", lambda event: event.widget.config(
                     font=('Verdana', 10, 'underline'), bg=hover_color))
                 checkbutton.bind("<Leave>", lambda event: event.widget.config(
                     font=('Verdana', 10, ''), bg='white'))
-                checkbutton.grid(row=rows, column=cols,
-                                 pady=2, padx=2, sticky='news')
-                checkbuttons.append(checkbutton)
-                cols += 1
-                if cols == num_columns:
-                    rows += 1
-                    cols = 0
-            if len(valid_packages) < num_columns:
-                for i in range(num_columns - len(valid_packages)):
-                    checkbutton = tkinter.Checkbutton(package_frame, width=1, bg='white', state='disabled', highlightthickness=4,
-                                              bd=0, indicatoron=0, anchor='w', relief='flat', font=('Verdana', 10))
-                    checkbutton.grid(row=rows, column=cols, pady=2, padx=2, sticky='news')
-                    checkbuttons.append(checkbutton)
-                    cols += 1
-            for i in range(num_columns):
-                package_frame.grid_columnconfigure(i, weight=1)
-            checkbuttons_groups.append((checkbuttons, package_frame))
+                package_frame.window_create(tkinter.END, window=checkbutton)
+            package_frame.config(state='disabled')
+            package_frame.bind("<Configure>", lambda e: self.adjust_text_height(e, package_frame, checkbutton.winfo_reqwidth()))
         window = canvas.create_window((0, 0), window=final, anchor='nw')
-        canvas.bind('<Enter>', lambda event: canvas.bind_all(
-            "<MouseWheel>", lambda e: Utils._on_mousewheel(e, canvas)))
-        canvas.bind('<Leave>', lambda event: canvas.unbind_all("<MouseWheel>"))
-        final.bind("<Configure>", lambda event: canvas.configure(
-            scrollregion=canvas.bbox("all")))
-        canvas.bind("<Configure>", lambda event: self.canvas_configure_event(
-            event, canvas, window, checkbuttons_groups))
+        canvas.bind('<Enter>', lambda e: canvas.bind_all("<MouseWheel>", lambda e: Utils._on_mousewheel(e, canvas)))
+        canvas.bind('<Leave>', lambda e: canvas.unbind_all("<MouseWheel>"))
+        final.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+        canvas.bind("<Configure>", lambda e: canvas.itemconfig(window, width=e.width))
         canvas.itemconfig(window, width=canvas.winfo_width())
         canvas.yview_moveto(0)
 
-    def canvas_configure_event(self, event, canvas, window, checkbuttons_groups):
-        canvas.itemconfig(window, width=event.width)
-        new_cols = round(event.width / Settings.min_button_width)
-        if self.current_cols != new_cols:
-            self.regrid_checkbuttons(new_cols, checkbuttons_groups)
-            self.current_cols = new_cols
+    def adjust_text_height(self, event, package_frame, buttonwidth):
+        ...
+        #print(event.width, event.height)
+        #package_frame.config(height=1)
+        print(package_frame.winfo_children())
 
-    def regrid_checkbuttons(self, newcols, checkbuttons_groups):
-        for i, (_group, frame) in enumerate(checkbuttons_groups):
-            rows, cols = 1, 0
-            group = []
-            for btn in _group:
-                if btn['state'] == 'normal':
-                    group.append(btn)
-                else:
-                    btn.grid_remove()
-            checkbuttons_groups[i] = (group, frame)
-            for checkbutton in group:
-                checkbutton.grid(row=rows, column=cols)
-                cols += 1
-                if cols == newcols:
-                    rows += 1
-                    cols = 0
-            if len(group) < newcols:
-                for _ in range(newcols - len(group)):
-                    checkbutton = tkinter.Checkbutton(frame, width=1, bg='white', state='disabled', highlightthickness=4,
-                                            bd=0, indicatoron=0, anchor='w', relief='flat', font=('Verdana', 10))
-                    checkbutton.grid(row=rows, column=cols, pady=2, padx=2, sticky='news')
-                    checkbuttons_groups[i][0].append(checkbutton)
-                    cols += 1
-            for i in range(self.current_cols):
-                frame.grid_columnconfigure(i, weight=0)
-            for i in range(newcols):
-                frame.grid_columnconfigure(i, weight=1)
-        
+
     def textfield_mode(self):
         self.deletion_frame.grid_forget()
         self.installation_frame.grid_forget()
