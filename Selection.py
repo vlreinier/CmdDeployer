@@ -252,21 +252,22 @@ class Selection(tkinter.Frame):
             _textframe.grid(sticky='news')
             _textframe.grid_propagate(0)
             _textframe.grid_columnconfigure(0, weight=1)
-            package_frame = tkinter.Text(_textframe, bg='white', bd=0, highlightthickness=0, selectbackground='white')
+            package_frame = tkinter.Text(_textframe, bg='white', bd=0, highlightthickness=0, selectbackground='white', cursor='arrow')
             package_frame.grid(sticky='news')
             for package in valid_packages:
-                checkbutton = tkinter.Checkbutton(package_frame, bg='white', text=package, bd=0, indicatoron=0,
+                _f = tkinter.Frame(package_frame, bg='white')
+                checkbutton = tkinter.Checkbutton(_f, bg='white', text=package, bd=0, indicatoron=0,
                     anchor='w', highlightthickness=4, width=Settings.min_button_width, cursor='hand2',
                     variable=packages[package][0], relief='flat', font=('Verdana', 10), selectcolor=select_color)
                 checkbutton.bind("<Enter>", lambda event: event.widget.config(
                     font=('Verdana', 10, 'underline'), bg=hover_color))
                 checkbutton.bind("<Leave>", lambda event: event.widget.config(
                     font=('Verdana', 10, ''), bg='white'))
-                package_frame.window_create(tkinter.END, window=checkbutton)
+                checkbutton.grid(padx=2, pady=2, sticky='news')
+                package_frame.window_create(tkinter.END, window=_f)
             package_frame.config(state='disabled')
-            buttonwidth, buttonheight = checkbutton.winfo_reqwidth(), checkbutton.winfo_reqheight()
+            buttonwidth, buttonheight = checkbutton.winfo_reqwidth()+5, checkbutton.winfo_reqheight()+5
             n_buttons = len(valid_packages)
-            #_textframe.config(height=buttonheight*(n_buttons//.winfo_width() // buttonwidth))
             _textframe.bind("<Configure>", lambda e, n_buttons=n_buttons: self.adjust_text_height(
                 e, buttonwidth, buttonheight, n_buttons))
         window = canvas.create_window((0, 0), window=main_frame, anchor='nw')
@@ -277,7 +278,8 @@ class Selection(tkinter.Frame):
         
     def adjust_text_height(self, event, buttonwidth, buttonheight, n_buttons):
         newcols = max(1, event.widget.winfo_width()//buttonwidth)
-        event.widget.config(height=buttonheight*math.ceil(n_buttons/newcols))
+        rows = math.ceil(n_buttons/newcols)
+        event.widget.config(height=buttonheight*rows)
             
     def textfield_mode(self):
         self.deletion_frame.grid_forget()
