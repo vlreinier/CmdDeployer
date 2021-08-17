@@ -198,7 +198,7 @@ class Progression(tkinter.Frame):
 
     def paexec_command_for_file(self, remote, target):
         if remote:
-            return [Settings.paexec_loc, f"\\\\{target}", "-c", "-f", "-s", Settings.temp_cmd_loc]
+            return [Settings.paexec_loc, f"\\\\{target}", "-f", "-s", "-c", "-csrc", Settings.temp_cmd_loc, os.path.basename(Settings.temp_cmd_loc)]
         else:
             return [Settings.paexec_loc, "-c", "-f", "-s", Settings.temp_cmd_loc]
 
@@ -234,7 +234,7 @@ class Progression(tkinter.Frame):
 
                 # Create process
                 cmd = self.paexec_command_for_file(remote, hostname)
-                process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
                 
                 # Killbutton config command
                 if self.kill:
