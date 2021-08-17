@@ -183,7 +183,7 @@ class Progression(tkinter.Frame):
         dir_name = os.path.dirname(Settings.temp_cmd_loc)
         if not os.path.exists(dir_name):
             os.mkdir(dir_name)
-        with open(Settings.temp_cmd_loc, Settings.write_mode_target_logs) as cmd:
+        with open(Settings.temp_cmd_loc, 'w') as cmd:
             cmd.write(f'@echo off{sep}echo Starting time: %TIME%{sep}')
             if Settings.install_state == "Textinput":
                 cmd.write(Settings.text + sep)

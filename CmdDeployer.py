@@ -18,14 +18,14 @@ if __name__ == "__main__":
         if not os.path.exists(Settings.logdir):
             os.mkdir(Settings.logdir)
         Settings.logfile = os.path.join(Settings.logdir, os.environ['COMPUTERNAME']+".log")
-        if os.path.exists(Settings.logfile):
+        if os.path.exists(Settings.logfile) and Settings.overwrite_target_logs:
             os.remove(Settings.logfile)
         # Logger config and file
         logging.basicConfig(
             filename=Settings.logfile,
             filemode='a',
             format='%(asctime)s %(levelname)s %(message)s',
-            datefmt='%H:%M:%S',
+            datefmt='%d-%m-%y %H:%M:%S',
             level=logging.INFO
         )
         Settings.logger = logging.getLogger('CmdDeployer')
