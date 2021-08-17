@@ -1,4 +1,3 @@
-from tkinter.constants import E
 from PIL import Image, ImageTk
 import pandas
 import tkinter

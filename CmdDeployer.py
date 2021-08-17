@@ -14,8 +14,7 @@ if __name__ == "__main__":
         ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, " ".join(sys.argv[1:]), None, 1)
     else:
 
-        
-        # Logger
+        # Logger setup
         if not os.path.exists(Settings.logdir):
             os.mkdir(Settings.logdir)
         Settings.logfile = os.path.join(Settings.logdir, os.environ['COMPUTERNAME']+".log")

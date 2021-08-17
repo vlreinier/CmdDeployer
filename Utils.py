@@ -2,8 +2,10 @@ import os
 import ctypes
 import sys
 import shutil
-import Settings
 import traceback
+
+import Settings
+
 
 def obj_bg(obj, bg):
     obj.config(bg=bg)
