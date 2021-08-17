@@ -25,23 +25,23 @@ class Selection(tkinter.Frame):
                                   command=self.textfield_mode, cursor='hand2', relief='flat', activebackground='white')
         texttocmd_button.grid(row=0, column=0, sticky='news', padx=3)
         texttocmd_button.bind("<Enter>", lambda event: event.widget.config(
-            font=('Verdana', 7, 'underline')))
+            font=('Verdana', 7, 'underline'), bg='white'))
         texttocmd_button.bind("<Leave>", lambda event: event.widget.config(
-            font=('Verdana', 7, '')))
+            font=('Verdana', 7, ''), bg=Settings.bg_two))
         deletion_button = tkinter.Button(header, bg=Settings.bg_two, font=('Verdana', 7), bd=0, text="Deletion",
                                  command=self.deletion_mode, cursor='hand2', relief='flat', activebackground='white')
         deletion_button.grid(row=0, column=1, sticky='news', padx=3)
         deletion_button.bind("<Enter>", lambda event: event.widget.config(
-            font=('Verdana', 7, 'underline')))
+            font=('Verdana', 7, 'underline'), bg='white'))
         deletion_button.bind("<Leave>", lambda event: event.widget.config(
-            font=('Verdana', 7, '')))
+            font=('Verdana', 7, ''), bg=Settings.bg_two))
         installation_button = tkinter.Button(header, bg=Settings.bg_two, font=('Verdana', 7), bd=0, text="Installation",
                                      command=self.installation_mode, cursor='hand2', relief='flat', activebackground='white')
         installation_button.grid(row=0, column=2, sticky='news', padx=3)
         installation_button.bind("<Enter>", lambda event: event.widget.config(
-            font=('Verdana', 7, 'underline')))
+            font=('Verdana', 7, 'underline'), bg='white'))
         installation_button.bind("<Leave>", lambda event: event.widget.config(
-            font=('Verdana', 7, '')))
+            font=('Verdana', 7, ''), bg=Settings.bg_two))
 
         ## Installation frame ##
         self.installation_frame = tkinter.Frame(self, bg='white')
@@ -61,7 +61,7 @@ class Selection(tkinter.Frame):
                                    *self.software_groups, command=lambda e: self.apply_software_group())
         group_options.config(bg='white', activebackground='white', direction='left', font=(
             'Verdana', 9), anchor='e', indicatoron=0, cursor='hand2', bd=0, highlightthickness=0, activeforeground='black')
-        group_options["menu"].config(bg=Settings.bg_two, activebackground='white', font=(
+        group_options["menu"].config(bg='white', activebackground=Settings.bg_two, font=(
             'Verdana', 8), cursor='hand2', activeforeground='black')
         group_options.bind("<Enter>", lambda event: event.widget.config(
             font=('Verdana', 9, 'underline')))
@@ -239,10 +239,9 @@ class Selection(tkinter.Frame):
             total_package_frame.grid(sticky='news')
             total_package_frame.grid_columnconfigure(0, weight=1)
             group_button_var = tkinter.BooleanVar(value=False)
-            group_button = tkinter.Button(total_package_frame, bg=Settings.bg_one,
-                fg=Settings.fg_one, relief='flat', bd=0, highlightthickness=3, text=group, anchor='w', font=('Verdana', 8), 
-                activebackground=Settings.bg_one, cursor='hand2', command=Utils.lambdaf(self.select_group_software, valid_packages, 
-                packages, group_button_var))
+            group_button = tkinter.Button(total_package_frame, bg=Settings.bg_one, fg=Settings.fg_one, cursor='hand2',
+                relief='flat', bd=0, highlightthickness=3, text=group, anchor='w', font=('Verdana', 8), activebackground=Settings.bg_one,
+                command=Utils.lambdaf(self.select_group_software, valid_packages, packages, group_button_var))
             group_button.grid(sticky='news')
             group_button.bind("<Enter>", lambda event: event.widget.config(
                 font=('Verdana', 8, 'underline')))
@@ -252,7 +251,8 @@ class Selection(tkinter.Frame):
             _textframe.grid(sticky='news')
             _textframe.grid_propagate(0)
             _textframe.grid_columnconfigure(0, weight=1)
-            package_frame = tkinter.Text(_textframe, bg='white', bd=0, highlightthickness=0, selectbackground='white', cursor='arrow')
+            package_frame = tkinter.Text(_textframe, bg='white', bd=0, highlightthickness=0,
+                selectbackground='white', cursor='arrow')
             package_frame.grid(sticky='news')
             for package in valid_packages:
                 _f = tkinter.Frame(package_frame, bg='white')
