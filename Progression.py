@@ -348,6 +348,7 @@ class Progression(tkinter.Frame):
         if input_workers.isdigit() and int(input_workers) > 0:
             return int(input_workers)
         else:
+            Settings.logger.error("Max workers input is not a integer, or is lower than 1.")
             return Settings.default_workers
 
     def create_canvas_contents(self):
