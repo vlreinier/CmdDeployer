@@ -196,12 +196,11 @@ class Progression(tkinter.Frame):
                             Settings.install_state, package, sep))
             cmd.write(f"echo Final ErrorLevel: %ERRORLEVEL%{sep}echo Ending time: %TIME%") 
 
-    def psexec_command_for_file(self, remote, target):
+    def paexec_command_for_file(self, remote, target):
         if remote:
-            return [Settings.psexec_loc, f"\\\\{target}", "-c",
-                        "-f", "-s", "-accepteula", "-nobanner", Settings.temp_cmd_loc]
+            return [Settings.paexec_loc, f"\\\\{target}", "-c", "-f", "-s", Settings.temp_cmd_loc]
         else:
-            return [Settings.psexec_loc, "-c", "-f", "-s", "-accepteula", "-nobanner", Settings.temp_cmd_loc]
+            return [Settings.paexec_loc, "-c", "-f", "-s", Settings.temp_cmd_loc]
 
     def decode(self, line):
         if b'\x00' in line and not b'\r' in line:
@@ -221,7 +220,7 @@ class Progression(tkinter.Frame):
         else:
             if remote:
                 connection.config(text="✔", fg=Settings.green_three)
-                errorlevel.config(text="OKAY", fg=Settings.green_three)
+                errorlevel.config(text="NO ISSUE", fg=Settings.green_three)
 
             # Include execution and outputting of Batch commands
             if incl_execute:
@@ -234,7 +233,7 @@ class Progression(tkinter.Frame):
                     output_button.invoke()
 
                 # Create process
-                cmd = self.psexec_command_for_file(remote, hostname)
+                cmd = self.paexec_command_for_file(remote, hostname)
                 process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                 
                 # Killbutton config command
@@ -258,7 +257,7 @@ class Progression(tkinter.Frame):
                 height = 0
                 errorlevels = set()
                 while True:
-                    time.sleep(0.05)
+                    time.sleep(0.001)
 
                     # End loop or skip line
                     line = process.stdout.readline()
