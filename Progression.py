@@ -256,8 +256,6 @@ class Progression(tkinter.Frame):
                 break_loop = False
                 start_time_ = time.time()
                 while True:
-                    height += 1
-                    new_time_ = time.time()
                     line = process.stdout.readline()
                     if not line:
                         break_loop = True
@@ -280,14 +278,16 @@ class Progression(tkinter.Frame):
                             errorlevel.config(text=text, fg=color)
 
                     # Output label insertion
+                    height += 1
                     lines += line if height == 1 else "\n"+line
-                    if (height % Settings.buffersize == 0) or break_loop or (new_time_ - start_time_ > Settings.max_buffertime):
+                    if (height % Settings.buffersize == 0) or break_loop or time.time() - start_time_ > Settings.max_buffertime:
                         outputlabel.config(state='normal')
                         outputlabel.insert(tkinter.END, lines)
                         if height <= Settings.max_output_length or n_targets == 1:
                             outputlabel.config(height=height)
                         outputlabel.config(state='disabled')
                         lines = ""
+                        start_time_ = time.time()
 
                     # Break out of loop
                     if break_loop:
