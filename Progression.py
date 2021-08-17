@@ -212,6 +212,7 @@ class Progression(tkinter.Frame):
                         errorlevel, runtime, outputlabel, n_targets, remote):
         Settings.logger.info(f"INITIATED THREAD FOR: {hostname}")
         start_time = time.time()
+        height = 0
 
         # Verify ping connection
         if remote and (not Utils.pingable(hostname, Settings.test_pings)):
@@ -229,17 +230,17 @@ class Progression(tkinter.Frame):
                     font=('Verdana', 9, 'underline')))
                 output_button.bind("<Leave>", lambda event: event.widget.config(
                     font=('Verdana', 9, '')))
-                if n_targets < 3 and not self.kill:
+                if n_targets == 1 and not self.kill:
                     output_button.invoke()
 
                 # Create process
                 cmd = self.paexec_command_for_file(remote, hostname)
-                process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
+                process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                 
                 # Killbutton config command
                 if self.kill:
                     self.kill_target(hostname, errorlevel, process)
-                    self.target_finalization(status_name_, hostname, killbutton, start_time, runtime)
+                    self.target_finalization(status_name_, hostname, killbutton, start_time, runtime, height)
                     return
                 killbutton.config(cursor='hand2', state='normal', command=lambda: threading.Thread(
                     target=self.kill_target, args=(hostname, errorlevel, process), daemon=True).start())
@@ -254,18 +255,23 @@ class Progression(tkinter.Frame):
                     font=('Verdana', 9, '')), add="+")
 
                 # Start and read process
-                height = 0
                 errorlevels = set()
+                lines = ""
+                break_loop = False
                 while True:
-                    time.sleep(0.001)
-
-                    # End loop or skip line
+                    height += 1
                     line = process.stdout.readline()
                     if not line:
-                        break
+                        break_loop = True
                     line = self.decode(line).rstrip()
                     if len(line) < 1:
                         continue
+                    if line.startswith("Ending time:"):
+                        break_loop = True
+                    if line.startswith('The handle is invalid')\
+                            or line.startswith("De ingang is ongeldig"):
+                        errorlevel.config(text="ERROR", fg=Settings.red_three)
+                        break_loop = True
 
                     # Output parsing
                     if not errorlevel['text'] == 'ERROR' and 'ErrorLevel: ' in line:
@@ -276,23 +282,21 @@ class Progression(tkinter.Frame):
                             errorlevel.config(text=text, fg=color)
 
                     # Output label insertion
-                    height += 1
-                    outputlabel.config(state='normal')
-                    outputlabel.insert(tkinter.END, line if height == 1 else "\n"+line)
-                    if height <= Settings.max_output_length or n_targets == 1:
-                        outputlabel.config(height=height)
-                    outputlabel.config(state='disabled')
+                    lines += line if height == 1 else "\n"+line
+                    if height % Settings.buffersize == 0 or break_loop:
+                        outputlabel.config(state='normal')
+                        outputlabel.insert(tkinter.END, lines)
+                        if height <= Settings.max_output_length or n_targets == 1:
+                            outputlabel.config(height=height)
+                        outputlabel.config(state='disabled')
+                        lines = ""
 
-                    # End loop
-                    if line.startswith("Ending time:") or height >= Settings.max_output:
-                        break
-                    if line.startswith('The handle is invalid')\
-                            or line.startswith("De ingang is ongeldig"):
-                        errorlevel.config(text="ERROR", fg=Settings.red_three)
+                    # Break out of loop
+                    if break_loop:
                         break
 
         # Finalize deployment
-        self.target_finalization(status_name_, hostname, killbutton, start_time, runtime, errorlevel)
+        self.target_finalization(status_name_, hostname, killbutton, start_time, runtime, errorlevel, height)
 
     def kill_running_targets(self):
         self.kill = True
@@ -319,7 +323,7 @@ class Progression(tkinter.Frame):
                 Settings.logger.info(line)
         errorlevel.config(text="KILLED", fg=Settings.red_three)
 
-    def target_finalization(self, status_name_, hostname, killbutton, start_time, runtime, errorlevel):
+    def target_finalization(self, status_name_, hostname, killbutton, start_time, runtime, errorlevel, height):
         status_name_.config(bg=Settings.bg_two, fg=Settings.green_three)
         killbutton.unbind('<Enter>')
         killbutton.unbind('<Leave>')
@@ -329,7 +333,7 @@ class Progression(tkinter.Frame):
         runtime.config(text=time.strftime("%H:%M:%S", time.gmtime(time.time()-start_time)))
         self.progressbar['value'] = self.progressbar['value'] + 1
         self.current_running_threads -= 1
-        Settings.logger.info(f"TERMINATED THREAD FOR: {hostname}")
+        Settings.logger.info(f"TERMINATED THREAD FOR: {hostname} WITH {height} READ LINES")
 
     def get_err_color_text(self, levels):
         color = Settings.green_three
@@ -401,7 +405,7 @@ class Progression(tkinter.Frame):
         threads = []
         for hostname in targets:
             while self.current_running_threads >= max_workers:
-                time.sleep(0.05)
+                time.sleep(0.01)
             if self.kill:
                 Settings.logger.info("STOPPED CREATING NEW TARGET FRAMES")
                 break
@@ -459,7 +463,7 @@ class Progression(tkinter.Frame):
                             incl_execute, connection_, errorlevel_, runtime_, cmd_output, len(targets), remote), daemon=True)
             threads.append(t)
             t.start()
-            time.sleep(0.05)
+            time.sleep(0.01)
         
         # Wait for all threads and finalize
         for t in threads:
