@@ -238,9 +238,7 @@ class Progression(tkinter.Frame):
                 process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                 
                 # Killbutton config command
-                killbutton.config(cursor='hand2', state='normal', command=lambda: threading.Thread(
-                    target=self.kill_target, args=(hostname, errorlevel, process), daemon=True).start())
-                self.killbuttons.append(killbutton)
+                killbutton.config(cursor='hand2', state='normal', command=lambda: self.killed_targets.append(hostname))
                 killbutton.bind('<Enter>', Utils.lambdaf_event(
                     Utils.obj_bg, status_name_, Settings.red_three), add="+")
                 killbutton.bind('<Leave>', Utils.lambdaf_event(
@@ -256,19 +254,25 @@ class Progression(tkinter.Frame):
                 break_loop = False
                 start_time_ = time.time()
                 while True:
+
+                    # Kill or continue conditions
                     line = process.stdout.readline()
                     if not line:
                         break_loop = True
                     line = self.decode(line).rstrip()
                     if len(line) < 1:
                         continue
-                    if line.startswith("Ending time:") or self.kill:
+                    if line.startswith("Ending time:"):
+                        break_loop = True
+                    if self.kill or hostname in self.killed_targets:
+                        self.kill_target(hostname, errorlevel, process)
+                        errorlevel.config(text="KILLED", fg=Settings.red_three)
                         break_loop = True
                     if line.startswith('The handle is invalid')\
                             or line.startswith("De ingang is ongeldig"):
                         errorlevel.config(text="ERROR", fg=Settings.red_three)
                         break_loop = True
-
+                        
                     # Output parsing
                     if not errorlevel['text'] == 'ERROR' and 'ErrorLevel: ' in line:
                         lvl = line[line.index("ErrorLevel: ") + len("ErrorLevel: "):]
@@ -291,19 +295,20 @@ class Progression(tkinter.Frame):
 
                     # Break out of loop
                     if break_loop:
-                        self.target_finalization(status_name_, hostname, killbutton, start_time, runtime, errorlevel, height)
-                        return
+                        break
+        
+        # Finalize for target
+        self.target_finalization(status_name_, hostname, killbutton, start_time, runtime, errorlevel, height)
 
     def kill_running_targets(self):
         self.kill = True
-        Settings.logger.info("KILL PROCESS HAS BEEN INITIATED")
+        Settings.logger.info("KILL PROCESS FOR ALL TARGETS HAS BEEN INITIATED")
         self.kill_process_button.config(state='disabled', cursor='arrow', font=("Verdana", 9, ""))
         self.kill_process_button.unbind("<Enter>")
         self.kill_process_button.unbind("<Leave>")
-        for btn in self.killbuttons:
-            btn.invoke()
 
     def kill_target(self, hostname, errorlevel, process):
+        Settings.logger.info(f"KILL PROCESS HAS BEEN INITIATED FOR {hostname}")
         process.terminate()
         process.kill()
         killprocess = subprocess.Popen(['taskkill', '/S', hostname, '/F', '/T', '/IM', 'PAExec-*'],
@@ -368,8 +373,8 @@ class Progression(tkinter.Frame):
 
     def init_deployment(self, incl_execute=True):
         # Initialize and (re)set variables
-        self.killbuttons = []
         self.kill = False
+        self.killed_targets = []
         self.remote_checkbutton.config(state='disabled', font=("Verdana", 8, ""), cursor='arrow')
         self.remote_checkbutton.unbind("<Enter>")
         self.remote_checkbutton.unbind("<Leave>")
@@ -436,7 +441,6 @@ class Progression(tkinter.Frame):
             connection_.grid(row=0, column=2, sticky='ew')
             errorlevel_frame = tkinter.Frame(status_frame, bg=Settings.bg_two)
             errorlevel_frame.grid(row=0, column=3)
-            
             errorlevel = tkinter.Label(
                 errorlevel_frame, text="State:", font=('Verdana', 9), bg=Settings.bg_two, anchor='w')
             errorlevel.grid(row=0, column=0, sticky='ew')
