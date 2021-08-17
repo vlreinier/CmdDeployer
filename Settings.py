@@ -34,6 +34,7 @@ min_width = int(config['DEFAULT']['min_width'])
 min_height = int(config['DEFAULT']['min_height'])
 max_output_length = int(config['DEFAULT']['max_output_length'])
 buffersize = int(config['DEFAULT']['buffersize'])
+max_buffertime = float(config['DEFAULT']['max_buffertime'])
 
 install_state = None
 installations = None

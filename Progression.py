@@ -238,10 +238,6 @@ class Progression(tkinter.Frame):
                 process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                 
                 # Killbutton config command
-                if self.kill:
-                    self.kill_target(hostname, errorlevel, process)
-                    self.target_finalization(status_name_, hostname, killbutton, start_time, runtime, height)
-                    return
                 killbutton.config(cursor='hand2', state='normal', command=lambda: threading.Thread(
                     target=self.kill_target, args=(hostname, errorlevel, process), daemon=True).start())
                 self.killbuttons.append(killbutton)
@@ -258,15 +254,17 @@ class Progression(tkinter.Frame):
                 errorlevels = set()
                 lines = ""
                 break_loop = False
+                start_time_ = time.time()
                 while True:
                     height += 1
+                    new_time_ = time.time()
                     line = process.stdout.readline()
                     if not line:
                         break_loop = True
                     line = self.decode(line).rstrip()
                     if len(line) < 1:
                         continue
-                    if line.startswith("Ending time:"):
+                    if line.startswith("Ending time:") or self.kill:
                         break_loop = True
                     if line.startswith('The handle is invalid')\
                             or line.startswith("De ingang is ongeldig"):
@@ -283,7 +281,7 @@ class Progression(tkinter.Frame):
 
                     # Output label insertion
                     lines += line if height == 1 else "\n"+line
-                    if height % Settings.buffersize == 0 or break_loop:
+                    if (height % Settings.buffersize == 0) or break_loop or (new_time_ - start_time_ > Settings.max_buffertime):
                         outputlabel.config(state='normal')
                         outputlabel.insert(tkinter.END, lines)
                         if height <= Settings.max_output_length or n_targets == 1:
@@ -293,10 +291,8 @@ class Progression(tkinter.Frame):
 
                     # Break out of loop
                     if break_loop:
-                        break
-
-        # Finalize deployment
-        self.target_finalization(status_name_, hostname, killbutton, start_time, runtime, errorlevel, height)
+                        self.target_finalization(status_name_, hostname, killbutton, start_time, runtime, errorlevel, height)
+                        return
 
     def kill_running_targets(self):
         self.kill = True
