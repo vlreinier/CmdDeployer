@@ -8,21 +8,37 @@ import Settings
 import Utils
 
 if __name__ == "__main__":
+
+    # Check UAC elevation
     if not Utils.is_admin():
         ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, " ".join(sys.argv[1:]), None, 1)
     else:
+
+        
+        # Logger
+        if not os.path.exists(Settings.logdir):
+            os.mkdir(Settings.logdir)
+        Settings.logfile = os.path.join(Settings.logdir, os.environ['COMPUTERNAME']+".log")
+        if os.path.exists(Settings.logfile):
+            os.remove(Settings.logfile)
+        # Logger config and file
+        logging.basicConfig(
+            filename=Settings.logfile,
+            filemode='a',
+            format='%(asctime)s %(levelname)s %(message)s',
+            datefmt='%H:%M:%S',
+            level=logging.INFO
+        )
+        Settings.logger = logging.getLogger('CmdDeployer')
+        sys.excepthook = Utils.sys_exceptions
+
+        # For hiding CMD window
         if os.path.basename(os.path.dirname(os.getcwd())) == 'GitHub':
             Utils.cmd_visibility(show=True)
         else:
             Utils.cmd_visibility(show=False)
-        if not os.path.exists(Settings.logdir):
-            os.mkdir(Settings.logdir)
-        Settings.logfile = os.path.join(Settings.logdir, os.environ['COMPUTERNAME'] + ".log")
-        if os.path.exists(Settings.logfile):
-            os.remove(Settings.logfile)
-        logging.basicConfig(filename=Settings.logfile, filemode='a', format='%(asctime)s %(levelname)s %(message)s',
-            datefmt='%H:%M:%S', level=logging.INFO)
-        Settings.logger = logging.getLogger()
+
+        # Tkinter root window
         root = Container.FrameContainer()
         root.title("Command Deployer")
         root.iconbitmap(Settings.logo_loc)

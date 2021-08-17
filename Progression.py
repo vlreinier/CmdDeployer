@@ -11,6 +11,7 @@ import sys
 import Utils
 import Settings
 
+threading.excepthook = Utils.thread_exceptions
 
 class Progression(tkinter.Frame):
 
@@ -214,7 +215,7 @@ class Progression(tkinter.Frame):
                         errorlevel, runtime, outputlabel, n_targets, remote):
         Settings.logger.info(f"INITIATED THREAD FOR: {hostname}")
         start_time = time.time()
-        
+
         # Verify ping connection
         if remote and (not Utils.pingable(hostname, Settings.test_pings)):
             connection.config(text='X', fg=Settings.red_three)
@@ -237,7 +238,7 @@ class Progression(tkinter.Frame):
                 # Create process
                 cmd = self.psexec_command_for_file(remote, hostname)
                 process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-
+                
                 # Killbutton config command
                 if self.kill:
                     self.kill_target(hostname, errorlevel, process)

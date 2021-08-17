@@ -3,6 +3,7 @@ import ctypes
 import sys
 import shutil
 import Settings
+import traceback
 
 def obj_bg(obj, bg):
     obj.config(bg=bg)
@@ -40,6 +41,7 @@ def exit_app():
     dir_name = os.path.dirname(Settings.temp_cmd_loc)
     if os.path.exists(dir_name):
         shutil.rmtree(dir_name, ignore_errors=True)
+    Settings.logger.info("PROGRAM WILL BE SHUT DOWN")
     sys.exit()
 
 
@@ -48,3 +50,12 @@ def is_admin():
         return ctypes.windll.shell32.IsUserAnAdmin()
     except:
         return False
+
+
+def sys_exceptions(type, value, tb):
+    message = ''.join(traceback.format_exception(type, value, tb))
+    Settings.logger.error(f'Caught {type} with value {value}\n' + message)
+
+
+def thread_exceptions(args):
+    Settings.logger.exception(f'Caught {args.exc_type} with value {args.exc_value} in thread {args.thread}')
