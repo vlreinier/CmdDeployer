@@ -1,7 +1,7 @@
 # CmdDeployer
 
-<img src="images/selection.png" alt="drawing" width="600"/>
-<img src="images/progression.png" alt="drawing" width="600"/>
+<img src="https://github.com/vlreinier/CmdDeployer/blob/main/images/selection.PNG" alt="drawing" width="600"/>
+<img src="https://github.com/vlreinier/CmdDeployer/blob/main/images/progression.PNG" alt="drawing" width="600"/>
 
 Python Tkinter application for deploying Batch/CMD and Powershell commands to a local machine or multiple remote machines. This app uses Tkinter as a GUI and Psexec.exe and Python module subprocess to execute commands remotely, and redirect cmd output. No external libraries are required for running the app without compiling it to an standalone executable (at least when using Python 3.8).
 
