@@ -25,10 +25,16 @@ if __name__ == "__main__":
         # Logger setup
         Settings.logfile = os.path.join(Settings.logdir, f"{Settings.instance_uid}.log")
         Settings.logger = logging.getLogger('CmdDeployer')
-        sys.excepthook = Utils.sys_exceptions
-        formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s', datefmt='%d-%m-%y %H:%M:%S')
-        handler = logging.FileHandler(Settings.logfile, mode='a', level=logging.INFO, formatter=formatter)
+        Settings.logger.setLevel(logging.DEBUG)
+        handler = logging.FileHandler(filename=Settings.logfile)
+        handler.setLevel(logging.DEBUG)
+        formatter = logging.Formatter(
+            fmt='%(asctime)s %(levelname)s %(message)s',
+            datefmt='%d-%m-%y %H:%M:%S'
+        )
+        handler.setFormatter(formatter)
         Settings.logger.addHandler(handler)
+        sys.excepthook = Utils.sys_exceptions
 
         # For hiding CMD window
         if os.path.basename(os.path.dirname(os.getcwd())) == 'GitHub':
