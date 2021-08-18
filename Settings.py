@@ -27,7 +27,6 @@ green_one = config['DEFAULT']['green_one']
 green_two = config['DEFAULT']['green_two']
 green_three = config['DEFAULT']['green_three']
 start_frame = config['DEFAULT']['start_frame']
-overwrite_target_logs = config['DEFAULT']['overwrite_target_logs'] == 'True'
 width_perc = float(config['DEFAULT']['width_perc'])
 height_perc = float(config['DEFAULT']['height_perc'])
 min_width = int(config['DEFAULT']['min_width'])
@@ -35,10 +34,3 @@ min_height = int(config['DEFAULT']['min_height'])
 max_output_length = int(config['DEFAULT']['max_output_length'])
 buffersize = int(config['DEFAULT']['buffersize'])
 max_buffertime = float(config['DEFAULT']['max_buffertime'])
-
-install_state = None
-installations = None
-deletions = None
-text = None
-logger = None
-logfile = None

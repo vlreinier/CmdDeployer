@@ -2,6 +2,7 @@ import logging
 import os
 import ctypes
 import sys
+import datetime
 
 import Container
 import Settings
@@ -13,23 +14,23 @@ if __name__ == "__main__":
     if not Utils.is_admin():
         ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, " ".join(sys.argv[1:]), None, 1)
     else:
-
-        # Logger setup
+        # Init actions and variables
         if not os.path.exists(Settings.logdir):
             os.mkdir(Settings.logdir)
-        Settings.logfile = os.path.join(Settings.logdir, os.environ['COMPUTERNAME']+".log")
-        if os.path.exists(Settings.logfile) and Settings.overwrite_target_logs:
-            os.remove(Settings.logfile)
-        # Logger config and file
-        logging.basicConfig(
-            filename=Settings.logfile,
-            filemode='a',
-            format='%(asctime)s %(levelname)s %(message)s',
-            datefmt='%d-%m-%y %H:%M:%S',
-            level=logging.INFO
-        )
+        if not os.path.exists(Settings.temp_cmd_loc):
+            os.mkdir(Settings.temp_cmd_loc)
+        Settings.instance_uid = f"{datetime.datetime.now().strftime('%m-%d-%Y_%H.%M.%S')}_{os.environ['COMPUTERNAME']}"
+        Settings.instance_cmdfile = os.path.join(Settings.temp_cmd_loc, f"{Settings.instance_uid}.cmd")
+
+        # Logger setup
+        Settings.logfile = os.path.join(Settings.logdir, f"{Settings.instance_uid}.log")
         Settings.logger = logging.getLogger('CmdDeployer')
         sys.excepthook = Utils.sys_exceptions
+        handler = logging.FileHandler(Settings.logfile, mode='a')
+        formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s', datefmt='%d-%m-%y %H:%M:%S')
+        handler.setLevel(logging.INFO)
+        handler.setFormatter(formatter)
+        Settings.logger.addHandler(handler)
 
         # For hiding CMD window
         if os.path.basename(os.path.dirname(os.getcwd())) == 'GitHub':
@@ -41,6 +42,7 @@ if __name__ == "__main__":
         root = Container.FrameContainer()
         root.title("Command Deployer")
         root.iconbitmap(Settings.logo_loc)
+        root.protocol("WM_DELETE_WINDOW", Utils.exit_app)
         screenwidth = root.winfo_screenwidth()
         screenheight = root.winfo_screenheight()
         width = Settings.width_perc * screenwidth

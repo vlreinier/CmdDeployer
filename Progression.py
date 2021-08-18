@@ -19,6 +19,10 @@ class Progression(tkinter.Frame):
     def __init__(self, parent, controller):
         tkinter.Frame.__init__(self, parent, bg='white')
         self.controller = controller
+        self.max_workers = Settings.default_workers
+        self.targets = []
+        self.execution_is_remote = False
+        self.include_cmd_execution = True
         self.remote_var = tkinter.BooleanVar(value=False)
         self.message_var = tkinter.BooleanVar(value=False)
         self.use_file_var = tkinter.BooleanVar(value=False)
@@ -86,7 +90,7 @@ class Progression(tkinter.Frame):
         self.select_computers_button.config(values=list(sorted(set([line.strip("\n") for line in open(
             Settings.combobox_loc, "r") if len(line.strip("\n")) > 0]))), font=('Verdana', 7))
         self.select_computers_button.bind(
-            '<<ComboboxSelected>>', lambda e: self.targets_text.insert(tkinter.END, ";"+self.select_computers_var.get()))
+            '<<ComboboxSelected>>', lambda e: self.targets_text.insert("end", f";{self.select_computers_var.get()}"))
         self.targets_text = tkinter.Text(self.remote_frame, height=1, font=('Verdana', 9), bd=0, bg='white',
                                  fg='black', selectbackground='#ccd9e7', selectforeground='black', highlightthickness=0)
 
@@ -168,39 +172,29 @@ class Progression(tkinter.Frame):
             self.verify_targets.unbind("<Enter>")
             self.verify_targets.unbind("<Leave>")
 
-    def get_targets(self, remote):
-        if remote:
+    def set_targets(self):
+        if self.execution_is_remote:
             if self.use_file_var.get():
-                return list(sorted(set([line.strip("\n") for line in open(
+                self.targets = list(sorted(set([line.strip("\n") for line in open(
                     Settings.targets_loc, "r") if len(line.strip("\n")) > 0])))
             else:
-                return [i for i in sorted(set(list(self.targets_text.get(
-                    "1.0", tkinter.END).replace("\n", "").split(";")))) if len(i) > 0]
+                self.targets = [i for i in sorted(set(list(self.targets_text.get(
+                    "1.0", "end").replace("\n", "").split(";")))) if len(i) > 0]
         else:
-            return ['127.0.0.1']
+            self.targets = ['127.0.0.1']
 
     def create_cmd_file(self, sep='\n'):
-        dir_name = os.path.dirname(Settings.temp_cmd_loc)
-        if not os.path.exists(dir_name):
-            os.mkdir(dir_name)
-        with open(Settings.temp_cmd_loc, 'w') as cmd:
+        with open(Settings.instance_cmdfile, 'w') as cmd:
             cmd.write(f'@echo off{sep}echo Starting time: %TIME%{sep}')
             if Settings.install_state == "Textinput":
-                cmd.write(Settings.text + sep)
+                cmd.write(f"{Settings.text}{sep}")
             else:
                 packages = Settings.installations if Settings.install_state == "Installation" else Settings.deletions
                 for package in packages:
                     if packages[package][0].get():
-                        cmd.write("Echo @ " + package + sep + packages[package][1] + sep)
-                        cmd.write("Echo ^> {0} of {1} ended with ErrorLevel: %ERRORLEVEL%{2}".format(
-                            Settings.install_state, package, sep))
+                        cmd.write(f"Echo @ {package}{sep}{packages[package][1]}{sep}")
+                        cmd.write(f"Echo ^> {Settings.install_state} of {package} ended with ErrorLevel: %ERRORLEVEL%{sep}")
             cmd.write(f"echo Final ErrorLevel: %ERRORLEVEL%{sep}echo Ending time: %TIME%") 
-
-    def paexec_command_for_file(self, remote, target):
-        if remote:
-            return [Settings.paexec_loc, f"\\\\{target}", "-f", "-s", "-c", "-csrc", Settings.temp_cmd_loc, os.path.basename(Settings.temp_cmd_loc)]
-        else:
-            return [Settings.paexec_loc, "-c", "-f", "-s", Settings.temp_cmd_loc]
 
     def decode(self, line):
         if b'\x00' in line and not b'\r' in line:
@@ -208,37 +202,33 @@ class Progression(tkinter.Frame):
         else:
             return line.replace(b"\x00\r\x00", b"").decode('utf-8', errors='ignore')
 
-    def init_target_deployment(self, status_name_, output_button, killbutton, hostname, incl_execute, connection,
-                        errorlevel, runtime, outputlabel, n_targets, remote):
+    def init_target_deployment(self, hostname, status_name_, cmd_output_button, killbutton, connection,
+        errorlevel, runtime, cmd_output, n_targets):
         Settings.logger.info(f"INITIATED THREAD FOR: {hostname}")
         start_time = time.time()
         height = 0
 
         # Verify ping connection
-        if remote and (not Utils.pingable(hostname, Settings.test_pings)):
+        if self.execution_is_remote and (not Utils.pingable(hostname, Settings.test_pings)):
             connection.config(text='X', fg=Settings.red_three)
             errorlevel.config(text="NO PING", fg=Settings.red_three)
         else:
-            if remote:
+            if self.execution_is_remote:
                 connection.config(text="✔", fg=Settings.green_three)
-                errorlevel.config(text="NO ISSUE", fg=Settings.green_three)
 
-            # Include execution and outputting of Batch commands
-            if incl_execute:
-                output_button.config(state='normal', cursor='hand2')
-                output_button.bind("<Enter>", lambda event: event.widget.config(
+            # Include execution and outputting of cmd/batch commands
+            if self.include_cmd_execution:
+                cmd_output_button.config(state='normal', cursor='hand2')
+                cmd_output_button.bind("<Enter>", lambda event: event.widget.config(
                     font=('Verdana', 9, 'underline')))
-                output_button.bind("<Leave>", lambda event: event.widget.config(
+                cmd_output_button.bind("<Leave>", lambda event: event.widget.config(
                     font=('Verdana', 9, '')))
-                if n_targets == 1 and not self.kill:
-                    output_button.invoke()
-
-                # Create process
-                cmd = self.paexec_command_for_file(remote, hostname)
-                process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                if n_targets == 1:
+                    cmd_output_button.invoke()
                 
                 # Killbutton config command
-                killbutton.config(cursor='hand2', state='normal', command=lambda: self.killed_targets.append(hostname))
+                killbutton.config(cursor='hand2', state='normal',
+                    command=lambda: self.killed_targets.append(hostname))
                 killbutton.bind('<Enter>', Utils.lambdaf_event(
                     Utils.obj_bg, status_name_, Settings.red_three), add="+")
                 killbutton.bind('<Leave>', Utils.lambdaf_event(
@@ -249,6 +239,10 @@ class Progression(tkinter.Frame):
                     font=('Verdana', 9, '')), add="+")
 
                 # Start and read process
+                cmd = [Settings.paexec_loc, f"\\\\{hostname}", "-f", "-s", "-c", "-csrc",
+                    Settings.instance_cmdfile, os.path.basename(Settings.instance_cmdfile)]
+                process = subprocess.Popen(cmd,
+                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                 errorlevels = set()
                 lines = ""
                 break_loop = False
@@ -276,20 +270,21 @@ class Progression(tkinter.Frame):
                     # Output parsing
                     if not errorlevel['text'] == 'ERROR' and 'ErrorLevel: ' in line:
                         lvl = line[line.index("ErrorLevel: ") + len("ErrorLevel: "):]
-                        if (lvl[0] == '-' and lvl[1:].isdigit()) or lvl.isdigit():
+                        if (lvl.lstrip('-').isdigit()) or lvl.isdigit():
                             errorlevels.add(int(lvl))
                             color, text = self.get_err_color_text(errorlevels)
                             errorlevel.config(text=text, fg=color)
 
                     # Output label insertion
                     height += 1
-                    lines += line if height == 1 else "\n"+line
-                    if (height % Settings.buffersize == 0) or break_loop or time.time() - start_time_ > Settings.max_buffertime:
-                        outputlabel.config(state='normal')
-                        outputlabel.insert(tkinter.END, lines)
+                    lines += f"{line}\n"
+                    if (height % Settings.buffersize == 0) or\
+                        break_loop or time.time() - start_time_ > Settings.max_buffertime:
+                        cmd_output.config(state='normal')
+                        cmd_output.insert("end", lines[:-2] if break_loop else lines)
                         if height <= Settings.max_output_length or n_targets == 1:
-                            outputlabel.config(height=height)
-                        outputlabel.config(state='disabled')
+                            cmd_output.config(height=height)
+                        cmd_output.config(state='disabled')
                         lines = ""
                         start_time_ = time.time()
 
@@ -298,7 +293,16 @@ class Progression(tkinter.Frame):
                         break
         
         # Finalize for target
-        self.target_finalization(status_name_, hostname, killbutton, start_time, runtime, errorlevel, height)
+        status_name_.config(bg=Settings.bg_two, fg=Settings.green_three)
+        killbutton.unbind('<Enter>')
+        killbutton.unbind('<Leave>')
+        if errorlevel['text'] == 'RUNNING':
+            errorlevel.config(text='UNKNOWN')
+        killbutton.config(state='disabled', cursor='arrow', font=("Verdana", 9, ""))
+        runtime.config(text=time.strftime("%H:%M:%S", time.gmtime(time.time()-start_time)))
+        self.progressbar['value'] = self.progressbar['value'] + 1
+        self.current_running_threads -= 1
+        Settings.logger.info(f"TERMINATED THREAD FOR: {hostname} WITH {height} READ LINES")
 
     def kill_running_targets(self):
         self.kill = True
@@ -324,18 +328,6 @@ class Progression(tkinter.Frame):
                 Settings.logger.info(line)
         errorlevel.config(text="KILLED", fg=Settings.red_three)
 
-    def target_finalization(self, status_name_, hostname, killbutton, start_time, runtime, errorlevel, height):
-        status_name_.config(bg=Settings.bg_two, fg=Settings.green_three)
-        killbutton.unbind('<Enter>')
-        killbutton.unbind('<Leave>')
-        if errorlevel['text'] == 'RUNNING':
-            errorlevel.config(text='UNKNOWN')
-        killbutton.config(state='disabled', cursor='arrow', font=("Verdana", 9, ""))
-        runtime.config(text=time.strftime("%H:%M:%S", time.gmtime(time.time()-start_time)))
-        self.progressbar['value'] = self.progressbar['value'] + 1
-        self.current_running_threads -= 1
-        Settings.logger.info(f"TERMINATED THREAD FOR: {hostname} WITH {height} READ LINES")
-
     def get_err_color_text(self, levels):
         color = Settings.green_three
         text = "NO ISSUE"
@@ -347,13 +339,13 @@ class Progression(tkinter.Frame):
                 text = "REBOOT"
         return color, text
 
-    def get_max_workers(self):
+    def set_max_workers(self):
         input_workers = str(self.workers_var.get())
         if input_workers.isdigit() and int(input_workers) > 0:
-            return int(input_workers)
+            self.max_workers = int(input_workers)
         else:
             Settings.logger.error("Max workers input is not a integer, or is lower than 1.")
-            return Settings.default_workers
+            self.max_workers = Settings.default_workers
 
     def create_canvas_contents(self):
         self.progression_frame = tkinter.Frame(self.progression_canvas, bg=Settings.bg_two)
@@ -375,6 +367,8 @@ class Progression(tkinter.Frame):
         # Initialize and (re)set variables
         self.kill = False
         self.killed_targets = []
+        self.include_cmd_execution = incl_execute
+        self.execution_is_remote = self.remote_var.get()
         self.remote_checkbutton.config(state='disabled', font=("Verdana", 8, ""), cursor='arrow')
         self.remote_checkbutton.unbind("<Enter>")
         self.remote_checkbutton.unbind("<Leave>")
@@ -391,85 +385,84 @@ class Progression(tkinter.Frame):
         self.verify_targets.config(state='disabled', cursor='arrow', font=("Verdana", 9, ""))
         self.verify_targets.unbind("<Enter>")
         self.verify_targets.unbind("<Leave>")
-        remote = self.remote_var.get()
-        targets = self.get_targets(remote)
+        self.set_targets()
         self.progressbar['value'] = 0
-        self.progressbar['maximum'] = len(targets)
+        self.progressbar['maximum'] = len(self.targets)
+        self.current_running_threads = 0
         self.create_canvas_contents()
         self.create_cmd_file()
-        self.current_running_threads = 0
-        max_workers = self.get_max_workers()
-        if len(targets) == 0:
-            self.deployment_finished(remote=remote)
-        
-        # Submit processes for all hostnames
-        threads = []
-        for hostname in targets:
-            while self.current_running_threads >= max_workers:
+        self.set_max_workers()
+
+        # Create threads for all hostnames and wait for all threads to finish
+        if len(self.targets) > 0:
+            threads = []
+            for hostname in self.targets:
+                while self.current_running_threads >= self.max_workers:
+                    time.sleep(0.01)
+                if self.kill:
+                    Settings.logger.info("STOPPED CREATING NEW TARGET FRAMES")
+                    break
+                self.current_running_threads += 1
+                thread = self.create_thread_for_target(hostname)
+                threads.append(thread)
+                thread.start()
                 time.sleep(0.01)
-            if self.kill:
-                Settings.logger.info("STOPPED CREATING NEW TARGET FRAMES")
-                break
-            self.current_running_threads += 1
-            status_frame = tkinter.Frame(self.progression_frame, bg=Settings.bg_two)
-            status_frame.grid(sticky='news', padx=3, pady=3)
-            status_frame.grid_columnconfigure(1, weight=1)
-            output_button = tkinter.Button(status_frame, text="ᐁ", font=('Verdana', 9), bg=Settings.bg_two, relief='flat',
-                                bd=0, anchor='w', activebackground=Settings.bg_two, state='disabled', width=2)
-            output_button.grid(row=0, column=0, sticky='ew', padx=3)
-            cmd_output = tkinter.Text(status_frame, font=('Verdana', 7), bg='white', bd=2,
-                relief='sunken', state='disabled', height=0, highlightthickness=0,
-                selectbackground=Settings.bg_one, selectforeground=Settings.fg_one)
-            output_button.config(
-                command=Utils.lambdaf(self.show_hide_cmd_output, output_button, cmd_output))
-            status_name_frame = tkinter.Frame(status_frame, bg=Settings.bg_two)
-            status_name_frame.grid(row=0, column=1, sticky='ew')
-            status_name_frame.grid_columnconfigure(1, weight=1)
-            status_name = tkinter.Label(status_name_frame, text="Name:", anchor='w',
-                                font=('Verdana', 9), bg=Settings.bg_two)
-            status_name.grid(row=0, column=0, sticky='ew')
-            status_name_ = tkinter.Label(status_name_frame, text=hostname, anchor='w', borderwidth=1, relief="flat",
-                                font=('Verdana', 9, 'bold'), bg=Settings.bg_two)
-            status_name_.grid(row=0, column=1, sticky='ew')
-            connection_frame = tkinter.Frame(status_frame, bg=Settings.bg_two)
-            connection_frame.grid(row=0, column=4, sticky='ew')
-            connection = tkinter.Label(
-                connection_frame, text="Ping:", font=('Verdana', 9), bg=Settings.bg_two, anchor='w')
-            connection.grid(row=0, column=1, sticky='ew')
-            connection_ = tkinter.Label(connection_frame, font=('Verdana', 9, 'bold'), text='-',
-                bg=Settings.bg_two, anchor='w', borderwidth=1, relief="flat", width=2)
-            connection_.grid(row=0, column=2, sticky='ew')
-            errorlevel_frame = tkinter.Frame(status_frame, bg=Settings.bg_two)
-            errorlevel_frame.grid(row=0, column=3)
-            errorlevel = tkinter.Label(
-                errorlevel_frame, text="State:", font=('Verdana', 9), bg=Settings.bg_two, anchor='w')
-            errorlevel.grid(row=0, column=0, sticky='ew')
-            errorlevel_ = tkinter.Label(errorlevel_frame, text="RUNNING", font=('Verdana', 9, 'bold'),
-                bg=Settings.bg_two, anchor='w', borderwidth=1, relief="flat", width=10)
-            errorlevel_.grid(row=0, column=1, sticky='ew')
-            runtime_frame = tkinter.Frame(status_frame, bg=Settings.bg_two)
-            runtime_frame.grid(row=0, column=2, sticky='ew')
-            runtime_frame.grid_columnconfigure(1, weight=1)
-            runtime = tkinter.Label(
-                runtime_frame, text="Runtime:", font=('Verdana', 9), bg=Settings.bg_two, anchor='e')
-            runtime.grid(row=0, column=0, sticky='ew')
-            runtime_ = tkinter.Label(runtime_frame,  font=('Verdana', 9, 'bold'), bg=Settings.bg_two, anchor='w',
-                borderwidth=1, relief="flat", width=10, text='-', fg=Settings.green_three)
-            runtime_.grid(row=0, column=1, sticky='ew')
-            killbutton = tkinter.Button(status_frame,  text="Kill", font=('Verdana', 9), bg=Settings.bg_two, anchor='e',
-                        relief="flat", activebackground=Settings.bg_two, bd=0, state='disabled', width=2)
-            killbutton.grid(row=0, column=5, sticky='ew', padx=3)
-            t = threading.Thread( target=self.init_target_deployment, args=(status_name_, output_button, killbutton, hostname,
-                            incl_execute, connection_, errorlevel_, runtime_, cmd_output, len(targets), remote), daemon=True)
-            threads.append(t)
-            t.start()
-            time.sleep(0.01)
-        
-        # Wait for all threads and finalize
-        for t in threads:
-            t.join()
-        self.deployment_finished(remote=remote)
+            for t in threads:
+                t.join()
+        self.deployment_finished()
         Settings.logger.info("ALL THREADS HAVE BEEN TERMINATED")
+
+    def create_thread_for_target(self, hostname):
+        status_frame = tkinter.Frame(self.progression_frame, bg=Settings.bg_two)
+        status_frame.grid(sticky='news', padx=3, pady=3)
+        status_frame.grid_columnconfigure(1, weight=1)
+        output_button = tkinter.Button(status_frame, text="ᐁ", font=('Verdana', 9), bg=Settings.bg_two, relief='flat',
+                            bd=0, anchor='w', activebackground=Settings.bg_two, state='disabled', width=2)
+        output_button.grid(row=0, column=0, sticky='ew', padx=3)
+        cmd_output = tkinter.Text(status_frame, font=('Verdana', 7), bg='white', bd=2,
+            relief='sunken', state='disabled', height=0, highlightthickness=0,
+            selectbackground=Settings.bg_one, selectforeground=Settings.fg_one)
+        output_button.config(
+            command=Utils.lambdaf(self.show_hide_cmd_output, output_button, cmd_output))
+        status_name_frame = tkinter.Frame(status_frame, bg=Settings.bg_two)
+        status_name_frame.grid(row=0, column=1, sticky='ew')
+        status_name_frame.grid_columnconfigure(1, weight=1)
+        status_name = tkinter.Label(status_name_frame, text="Name:", anchor='w',
+                            font=('Verdana', 9), bg=Settings.bg_two)
+        status_name.grid(row=0, column=0, sticky='ew')
+        status_name_ = tkinter.Label(status_name_frame, text=hostname, anchor='w', borderwidth=1, relief="flat",
+                            font=('Verdana', 9, 'bold'), bg=Settings.bg_two)
+        status_name_.grid(row=0, column=1, sticky='ew')
+        connection_frame = tkinter.Frame(status_frame, bg=Settings.bg_two)
+        connection_frame.grid(row=0, column=4, sticky='ew')
+        connection = tkinter.Label(
+            connection_frame, text="Ping:", font=('Verdana', 9), bg=Settings.bg_two, anchor='w')
+        connection.grid(row=0, column=1, sticky='ew')
+        connection_ = tkinter.Label(connection_frame, font=('Verdana', 9, 'bold'), text='-',
+            bg=Settings.bg_two, anchor='w', borderwidth=1, relief="flat", width=2)
+        connection_.grid(row=0, column=2, sticky='ew')
+        errorlevel_frame = tkinter.Frame(status_frame, bg=Settings.bg_two)
+        errorlevel_frame.grid(row=0, column=3)
+        errorlevel = tkinter.Label(
+            errorlevel_frame, text="State:", font=('Verdana', 9), bg=Settings.bg_two, anchor='w')
+        errorlevel.grid(row=0, column=0, sticky='ew')
+        errorlevel_ = tkinter.Label(errorlevel_frame, text="RUNNING", font=('Verdana', 9, 'bold'),
+            bg=Settings.bg_two, anchor='w', borderwidth=1, relief="flat", width=10)
+        errorlevel_.grid(row=0, column=1, sticky='ew')
+        runtime_frame = tkinter.Frame(status_frame, bg=Settings.bg_two)
+        runtime_frame.grid(row=0, column=2, sticky='ew')
+        runtime_frame.grid_columnconfigure(1, weight=1)
+        runtime = tkinter.Label(
+            runtime_frame, text="Runtime:", font=('Verdana', 9), bg=Settings.bg_two, anchor='e')
+        runtime.grid(row=0, column=0, sticky='ew')
+        runtime_ = tkinter.Label(runtime_frame,  font=('Verdana', 9, 'bold'), bg=Settings.bg_two, anchor='w',
+            borderwidth=1, relief="flat", width=10, text='-')
+        runtime_.grid(row=0, column=1, sticky='ew')
+        killbutton = tkinter.Button(status_frame,  text="Kill", font=('Verdana', 9), bg=Settings.bg_two, anchor='e',
+                    relief="flat", activebackground=Settings.bg_two, bd=0, state='disabled', width=2)
+        killbutton.grid(row=0, column=5, sticky='ew', padx=3)
+        return threading.Thread(target=self.init_target_deployment, args=(hostname, status_name_, output_button, killbutton,
+            connection_, errorlevel_, runtime_, cmd_output, len(self.targets)), daemon=True)
 
     def show_hide_cmd_output(self, button, text):
         if button['text'] == "ᐁ":
@@ -479,7 +472,7 @@ class Progression(tkinter.Frame):
             button.config(text="ᐁ")
             text.grid_forget()
 
-    def deployment_finished(self, remote):
+    def deployment_finished(self):
         self.remote_checkbutton.config(state='normal', font=("Verdana", 8, ""), cursor='hand2')
         self.remote_checkbutton.bind("<Enter>", lambda event: event.widget.config(
             font=('Verdana', 8, 'underline')))
@@ -489,7 +482,7 @@ class Progression(tkinter.Frame):
         self.kill_process_button.unbind("<Enter>")
         self.kill_process_button.unbind("<Leave>")
         self.start_button.config(state='normal', cursor='hand2')
-        if remote:
+        if self.execution_is_remote:
             self.verify_targets.config(state='normal', font=("Verdana", 9, ""), cursor='hand2')
             self.verify_targets.bind("<Enter>", lambda event: event.widget.config(
                 font=('Verdana', 9, 'underline')))

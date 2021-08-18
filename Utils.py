@@ -3,6 +3,7 @@ import ctypes
 import sys
 import shutil
 import traceback
+import time
 
 import Settings
 
@@ -40,9 +41,15 @@ def _on_mousewheel(event, canvas):
 
 
 def exit_app():
-    dir_name = os.path.dirname(Settings.temp_cmd_loc)
-    if os.path.exists(dir_name):
-        shutil.rmtree(dir_name, ignore_errors=True)
+    for handler in Settings.logger.handlers[:]:
+        handler.close()
+        Settings.logger.removeHandler(handler)
+    if os.path.exists(Settings.logfile):
+        os.remove(Settings.logfile)
+    if os.path.exists(Settings.instance_cmdfile):
+        os.remove(Settings.instance_cmdfile)
+    if len(os.listdir(Settings.temp_cmd_loc)) == 0:
+        shutil.rmtree(Settings.temp_cmd_loc)
     Settings.logger.info("PROGRAM WILL BE SHUT DOWN")
     sys.exit()
 
