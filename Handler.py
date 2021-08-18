@@ -3,13 +3,15 @@ import Progression
 import Selection
 
 
-class FrameContainer(tkinter.Tk):
-    
+class FrameHandler(tkinter.Tk):
+
     def __init__(self, *args, **kwargs):
         tkinter.Tk.__init__(self, *args, **kwargs)
-        
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+
         container = tkinter.Frame(self)
-        container.pack(side="top", fill="both", expand=True)
+        container.grid(sticky='nsew')
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
 
@@ -18,8 +20,6 @@ class FrameContainer(tkinter.Tk):
             frame = i(parent=container, controller=self)
             self.frames[i.__name__] = frame
             frame.grid(row=0, column=0, sticky="nsew")
-
-        self.start_frame("Selection")
 
     def start_frame(self, page):
         self.frames[page].tkraise()

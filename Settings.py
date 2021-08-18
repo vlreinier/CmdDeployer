@@ -1,5 +1,6 @@
 import configparser
 
+
 config = configparser.ConfigParser()
 config.read('dependencies\\settings.ini')
 temp_cmd_loc = config['DEFAULT']['temp_cmd_loc']
