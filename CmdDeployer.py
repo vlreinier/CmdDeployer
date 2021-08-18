@@ -26,10 +26,8 @@ if __name__ == "__main__":
         Settings.logfile = os.path.join(Settings.logdir, f"{Settings.instance_uid}.log")
         Settings.logger = logging.getLogger('CmdDeployer')
         sys.excepthook = Utils.sys_exceptions
-        handler = logging.FileHandler(Settings.logfile, mode='a')
         formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s', datefmt='%d-%m-%y %H:%M:%S')
-        handler.setLevel(logging.INFO)
-        handler.setFormatter(formatter)
+        handler = logging.FileHandler(Settings.logfile, mode='a', level=logging.INFO, formatter=formatter)
         Settings.logger.addHandler(handler)
 
         # For hiding CMD window
