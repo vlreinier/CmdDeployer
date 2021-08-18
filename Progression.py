@@ -245,7 +245,7 @@ class Progression(tkinter.Frame):
             connection.config(text="✔", fg=Settings.green_three)
 
         # Include execution and outputting of cmd/batch commands
-        if self.include_cmd_execution:
+        if self.include_cmd_execution and pingable:
             cmd_output_button.config(state='normal', cursor='hand2')
             cmd_output_button.bind("<Enter>", lambda event: event.widget.config(
                 font=('Verdana', 9, 'underline')))
@@ -475,14 +475,21 @@ class Progression(tkinter.Frame):
             self.progression_frame, bg=Settings.bg_two)
         status_frame.grid(sticky='news', padx=3, pady=3)
         status_frame.grid_columnconfigure(1, weight=1)
+        status_frame.grid_rowconfigure(1, weight=1)
         output_button = tkinter.Button(status_frame, text="ᐁ", font=('Verdana', 9), bg=Settings.bg_two, relief='flat',
                                        bd=0, anchor='w', activebackground=Settings.bg_two, state='disabled', width=2)
         output_button.grid(row=0, column=0, sticky='ew', padx=3)
-        cmd_output = tkinter.Text(status_frame, font=('Verdana', 7), bg='white', bd=2,
+        cmd_output_frame = tkinter.Frame(status_frame)
+        cmd_output_frame.grid_columnconfigure(0, weight=1)
+        cmd_output = tkinter.Text(cmd_output_frame, font=('Verdana', 7), bg='white', bd=2,
                                   relief='sunken', state='disabled', height=0, highlightthickness=0,
                                   selectbackground=Settings.bg_one, selectforeground=Settings.fg_one)
+        cmd_output.grid(row=0, column=0, sticky="nsew")
+        cmd_output_scrollbar = tkinter.Scrollbar(cmd_output_frame, command=cmd_output.yview, bg=Settings.bg_two)
+        cmd_output_scrollbar.grid(row=0, column=1, sticky="news")
+        cmd_output.config(yscrollcommand=cmd_output_scrollbar.set)
         output_button.config(
-            command=Utils.lambdaf(self.show_hide_cmd_output, output_button, cmd_output))
+            command=Utils.lambdaf(self.show_hide_cmd_output_frame, output_button, cmd_output_frame))
         status_name_frame = tkinter.Frame(status_frame, bg=Settings.bg_two)
         status_name_frame.grid(row=0, column=1, sticky='ew')
         status_name_frame.grid_columnconfigure(1, weight=1)
@@ -524,13 +531,13 @@ class Progression(tkinter.Frame):
         return threading.Thread(target=self.init_target_deployment, args=(hostname, status_name_, output_button, killbutton,
                                                                           connection_, errorlevel_, runtime_, cmd_output, len(self.targets)), daemon=True)
 
-    def show_hide_cmd_output(self, button, text):
+    def show_hide_cmd_output_frame(self, button, textframe):
         if button['text'] == "ᐁ":
             button.config(text="ᐃ")
-            text.grid(row=1, sticky="news", columnspan=7, pady=2)
+            textframe.grid(row=1, sticky="news", pady=2, columnspan=7)
         else:
             button.config(text="ᐁ")
-            text.grid_forget()
+            textframe.grid_forget()
 
     def deployment_finished(self):
         self.remote_checkbutton.config(
