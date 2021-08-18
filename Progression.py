@@ -21,6 +21,8 @@ class Progression(tkinter.Frame):
         self.controller = controller
         self.max_workers = Settings.default_workers
         self.targets = []
+        self.kill = False
+        self.kill_buttons = []
         self.execution_is_remote = False
         self.include_cmd_execution = True
         self.remote_var = tkinter.BooleanVar(value=False)
@@ -203,96 +205,102 @@ class Progression(tkinter.Frame):
             return line.replace(b"\x00\r\x00", b"").decode('utf-8', errors='ignore')
 
     def init_target_deployment(self, hostname, status_name_, cmd_output_button, killbutton, connection,
-        errorlevel, runtime, cmd_output, n_targets):
+                                errorlevel, runtime, cmd_output, n_targets):
         Settings.logger.info(f"INITIATED THREAD FOR: {hostname}")
         start_time = time.time()
         height = 0
-
+        lines = ""
+        errorlevels = set()
+        break_loop, logged_overflow = False, False
+        
         # Verify ping connection
-        if self.execution_is_remote and (not Utils.pingable(hostname, Settings.test_pings)):
+        pingable = Utils.pingable(hostname, Settings.test_pings) if self.execution_is_remote else True
+        if not pingable:
             connection.config(text='X', fg=Settings.red_three)
             errorlevel.config(text="NO PING", fg=Settings.red_three)
         else:
-            if self.execution_is_remote:
-                connection.config(text="✔", fg=Settings.green_three)
+            connection.config(text="✔", fg=Settings.green_three)
 
-            # Include execution and outputting of cmd/batch commands
-            if self.include_cmd_execution:
-                cmd_output_button.config(state='normal', cursor='hand2')
-                cmd_output_button.bind("<Enter>", lambda event: event.widget.config(
-                    font=('Verdana', 9, 'underline')))
-                cmd_output_button.bind("<Leave>", lambda event: event.widget.config(
-                    font=('Verdana', 9, '')))
-                if n_targets == 1:
-                    cmd_output_button.invoke()
-                
-                # Killbutton config command
-                killbutton.config(cursor='hand2', state='normal',
-                    command=lambda: self.killed_targets.append(hostname))
-                killbutton.bind('<Enter>', Utils.lambdaf_event(
-                    Utils.obj_bg, status_name_, Settings.red_three), add="+")
-                killbutton.bind('<Leave>', Utils.lambdaf_event(
-                    Utils.obj_bg, status_name_, Settings.bg_two), add="+")
-                killbutton.bind("<Enter>", lambda event: event.widget.config(
-                    font=('Verdana', 9, 'underline')), add="+")
-                killbutton.bind("<Leave>", lambda event: event.widget.config(
-                    font=('Verdana', 9, '')), add="+")
+        # Include execution and outputting of cmd/batch commands
+        if self.include_cmd_execution:
+            cmd_output_button.config(state='normal', cursor='hand2')
+            cmd_output_button.bind("<Enter>", lambda event: event.widget.config(
+                font=('Verdana', 9, 'underline')))
+            cmd_output_button.bind("<Leave>", lambda event: event.widget.config(
+                font=('Verdana', 9, '')))
+            if n_targets == 1:
+                cmd_output_button.invoke()
 
-                # Start and read process
-                cmd = [Settings.paexec_loc, f"\\\\{hostname}", "-f", "-s", "-c", "-csrc",
-                    Settings.instance_cmdfile, os.path.basename(Settings.instance_cmdfile)]
-                process = subprocess.Popen(cmd,
-                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-                errorlevels = set()
-                lines = ""
-                break_loop = False
-                start_time_ = time.time()
-                while True:
+            # Init process
+            cmd = [Settings.paexec_loc, f"\\\\{hostname}", "-f", "-s", "-c", "-csrc",
+                Settings.instance_cmdfile, os.path.basename(Settings.instance_cmdfile)]
+            process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            
+            # Killbutton config command
+            killbutton.config(cursor='hand2', state='normal',
+                command=lambda: self.kill_target(hostname, errorlevel, process))
+            killbutton.bind('<Enter>', Utils.lambdaf_event(
+                Utils.obj_bg, status_name_, Settings.red_three), add="+")
+            killbutton.bind('<Leave>', Utils.lambdaf_event(
+                Utils.obj_bg, status_name_, Settings.bg_two), add="+")
+            killbutton.bind("<Enter>", lambda event: event.widget.config(
+                font=('Verdana', 9, 'underline')), add="+")
+            killbutton.bind("<Leave>", lambda event: event.widget.config(
+                font=('Verdana', 9, '')), add="+")
 
-                    # Kill or continue conditions
-                    line = process.stdout.readline()
-                    if not line:
-                        break_loop = True
-                    line = self.decode(line).rstrip()
-                    if len(line) < 1:
-                        continue
-                    if line.startswith("Ending time:"):
-                        break_loop = True
-                    if self.kill or hostname in self.killed_targets:
-                        self.kill_target(hostname, errorlevel, process)
-                        errorlevel.config(text="KILLED", fg=Settings.red_three)
-                        break_loop = True
-                    if line.startswith('The handle is invalid')\
-                            or line.startswith("De ingang is ongeldig"):
-                        errorlevel.config(text="ERROR", fg=Settings.red_three)
-                        break_loop = True
-                        
-                    # Output parsing
-                    if not errorlevel['text'] == 'ERROR' and 'ErrorLevel: ' in line:
-                        lvl = line[line.index("ErrorLevel: ") + len("ErrorLevel: "):]
-                        if (lvl.lstrip('-').isdigit()) or lvl.isdigit():
-                            errorlevels.add(int(lvl))
-                            color, text = self.get_err_color_text(errorlevels)
-                            errorlevel.config(text=text, fg=color)
+            # Start and read process
+            read_line = time.time()
+            for line in iter(process.stdout.readline, b''):
+                read_line_delta = time.time() - read_line
 
-                    # Output label insertion
-                    height += 1
+                # Kill, break or continue
+                if not line:
+                    break_loop = True
+                line = self.decode(line).rstrip()
+                if len(line) < 1:
+                    continue
+                if line.startswith("Ending time:"):
+                    break_loop = True
+
+                # Output parsing
+                if not errorlevel['text'] == 'ERROR' and 'ErrorLevel: ' in line:
+                    lvl = line[line.index("ErrorLevel: ") + len("ErrorLevel: "):]
+                    if (lvl.lstrip('-').isdigit()) or lvl.isdigit():
+                        errorlevels.add(int(lvl))
+                        color, text = self.get_err_color_text(errorlevels)
+                        errorlevel.config(text=text, fg=color)
+
+                # Output insertion
+                height += 1
+                if height-1 <= Settings.max_output:
                     lines += f"{line}\n"
-                    if (height % Settings.buffersize == 0) or\
-                        break_loop or time.time() - start_time_ > Settings.max_buffertime:
+                    if (height % Settings.buffersize == 0) or break_loop or read_line_delta > Settings.max_buffertime:
                         cmd_output.config(state='normal')
-                        cmd_output.insert("end", lines[:-2] if break_loop else lines)
-                        if height <= Settings.max_output_length or n_targets == 1:
+                        cmd_output.insert("end", lines)
+                        if height <= Settings.max_output_height or n_targets == 1:
                             cmd_output.config(height=height)
                         cmd_output.config(state='disabled')
                         lines = ""
-                        start_time_ = time.time()
-
-                    # Break out of loop
-                    if break_loop:
-                        break
+                else:
+                    if not logged_overflow:
+                        errorlevel.config(text='OVERFLOW', fg=Settings.red_three)
+                        logged_overflow = True
+                
+                # New start time for calculating delta time
+                read_line = time.time()
+                if break_loop:
+                    break
         
+        # Unexpected shutdown
+        if not break_loop and self.include_cmd_execution and pingable:
+            errorlevel.config(text='ERROR', fg=Settings.red_three)
+            Settings.logger.error("UNEXPECTED SHUTDOWN OF PROCESS "
+                f"FOR {hostname} WITH OUTPUT:\n{lines.rstrip()}")
+
         # Finalize for target
+        cmd_output.config(state='normal')
+        cmd_output.delete("end-1c linestart", "end")
+        cmd_output.config(state='disabled')
         status_name_.config(bg=Settings.bg_two, fg=Settings.green_three)
         killbutton.unbind('<Enter>')
         killbutton.unbind('<Leave>')
@@ -310,6 +318,8 @@ class Progression(tkinter.Frame):
         self.kill_process_button.config(state='disabled', cursor='arrow', font=("Verdana", 9, ""))
         self.kill_process_button.unbind("<Enter>")
         self.kill_process_button.unbind("<Leave>")
+        for button in self.kill_buttons:
+            button.invoke()
 
     def kill_target(self, hostname, errorlevel, process):
         Settings.logger.info(f"KILL PROCESS HAS BEEN INITIATED FOR {hostname}")
@@ -366,7 +376,7 @@ class Progression(tkinter.Frame):
     def init_deployment(self, incl_execute=True):
         # Initialize and (re)set variables
         self.kill = False
-        self.killed_targets = []
+        self.kill_buttons = []
         self.include_cmd_execution = incl_execute
         self.execution_is_remote = self.remote_var.get()
         self.remote_checkbutton.config(state='disabled', font=("Verdana", 8, ""), cursor='arrow')
@@ -461,6 +471,7 @@ class Progression(tkinter.Frame):
         killbutton = tkinter.Button(status_frame,  text="Kill", font=('Verdana', 9), bg=Settings.bg_two, anchor='e',
                     relief="flat", activebackground=Settings.bg_two, bd=0, state='disabled', width=2)
         killbutton.grid(row=0, column=5, sticky='ew', padx=3)
+        self.kill_buttons.append(killbutton)
         return threading.Thread(target=self.init_target_deployment, args=(hostname, status_name_, output_button, killbutton,
             connection_, errorlevel_, runtime_, cmd_output, len(self.targets)), daemon=True)
 
