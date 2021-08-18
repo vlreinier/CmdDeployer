@@ -26,6 +26,7 @@ class Progression(tkinter.Frame):
         self.kill_buttons = []
         self.execution_is_remote = False
         self.include_cmd_execution = True
+        self.console_var = tkinter.StringVar(value="Show console")
         self.remote_var = tkinter.BooleanVar(value=False)
         self.message_var = tkinter.BooleanVar(value=False)
         self.use_file_var = tkinter.BooleanVar(value=False)
@@ -45,12 +46,19 @@ class Progression(tkinter.Frame):
             font=('Verdana', 7, 'underline'), bg='white'))
         log.bind("<Leave>", lambda event: event.widget.config(
             font=('Verdana', 7, ''), bg=Settings.bg_two))
+        console = tkinter.Button(header, bg=Settings.bg_two, textvariable=self.console_var, relief='flat', bd=0,
+            command=self.show_hide_console, fg=Settings.fg_one, cursor='hand2', font=('Verdana', 7), activebackground='white')
+        console.grid(row=0, column=1, sticky='w', padx=3)
+        console.bind("<Enter>", lambda event: event.widget.config(
+            font=('Verdana', 7, 'underline'), bg='white'))
+        console.bind("<Leave>", lambda event: event.widget.config(
+            font=('Verdana', 7, ''), bg=Settings.bg_two))
         workers_input = tkinter.Entry(
             header, width=3, textvariable=self.workers_var, font=('Verdana', 7))
-        workers_input.grid(row=0, column=2, sticky='e', padx=3)
+        workers_input.grid(row=0, column=3, sticky='e', padx=3)
         workers_label = tkinter.Label(header, bg=Settings.bg_two, text='Concurrent deployments:',
                                       relief='flat', bd=0, font=('Verdana', 7), fg=Settings.fg_one)
-        workers_label.grid(row=0, column=1, sticky='e', padx=3)
+        workers_label.grid(row=0, column=2, sticky='e', padx=3)
 
         # Info and options
         info_label_frame = tkinter.Frame(self, bg='white')
@@ -144,6 +152,14 @@ class Progression(tkinter.Frame):
         self.start_button.grid(row=0, column=2, sticky='w')
         self.start_button.image = start_image
 
+    def show_hide_console(self):
+        if self.console_var.get() == "Show console":
+            self.console_var.set("Hide console")
+            Utils.cmd_visibility(show=True)
+        else:
+            self.console_var.set("Show console")
+            Utils.cmd_visibility(show=False)
+
     def open_log(self):
         if os.path.exists(Settings.logfile):
             webbrowser.open(Settings.logfile)
@@ -212,7 +228,7 @@ class Progression(tkinter.Frame):
 
     def init_target_deployment(self, hostname, status_name_, cmd_output_button, killbutton, connection,
                                errorlevel, runtime, cmd_output, n_targets):
-        Settings.logger.info(f"INITIATED THREAD FOR: {hostname}")
+        Settings.logger.info(f"INITIATED THREAD FOR {hostname}")
         start_time = time.time()
         height = 0
         lines = ""
@@ -261,7 +277,7 @@ class Progression(tkinter.Frame):
             for line in iter(process.stdout.readline, b''):
                 read_line_delta = time.time() - read_line
 
-                # Kill, break or continue
+                # Break or continue
                 if not line:
                     break_loop = True
                 line = self.decode(line).rstrip()
@@ -283,7 +299,8 @@ class Progression(tkinter.Frame):
                 height += 1
                 if height-1 <= Settings.max_output:
                     lines += f"{line}\n"
-                    if (height % Settings.buffersize == 0) or break_loop or read_line_delta > Settings.max_buffertime:
+                    if (height % Settings.buffersize == 0) or break_loop or\
+                        read_line_delta > Settings.max_buffertime:
                         cmd_output.config(state='normal')
                         cmd_output.insert("end", lines)
                         if height <= Settings.max_output_height or n_targets == 1:
@@ -303,9 +320,8 @@ class Progression(tkinter.Frame):
 
         # Unexpected shutdown
         if not break_loop and self.include_cmd_execution and pingable:
-            errorlevel.config(text='ERROR', fg=Settings.red_three)
-            Settings.logger.error("UNEXPECTED SHUTDOWN OF PROCESS "
-                                  f"FOR {hostname} WITH OUTPUT:\n{lines.rstrip()}")
+            errorlevel.config(text='KILLED', fg=Settings.red_three)
+            Settings.logger.error(f"UNEXPECTED SHUTDOWN FOR {hostname} WITH OUTPUT\n{lines.rstrip()}")
 
         # Finalize for target
         cmd_output.config(state='normal')
@@ -323,7 +339,7 @@ class Progression(tkinter.Frame):
         self.progressbar['value'] = self.progressbar['value'] + 1
         self.current_running_threads -= 1
         Settings.logger.info(
-            f"TERMINATED THREAD FOR: {hostname} WITH {height} READ LINES")
+            f"TERMINATED THREAD FOR {hostname} WITH {height} READ LINES")
 
     def kill_running_targets(self):
         self.kill = True
@@ -337,10 +353,19 @@ class Progression(tkinter.Frame):
 
     def kill_target(self, hostname, errorlevel, process):
         Settings.logger.info(f"KILL PROCESS HAS BEEN INITIATED FOR {hostname}")
+
+        # Kill subprocess
         process.terminate()
         process.kill()
-        killprocess = subprocess.Popen(['taskkill', '/S', hostname, '/F', '/T', '/IM', 'PAExec-*'],
-                                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+        # Create subprocess to kill remaining running services
+        killprocess = subprocess.Popen(
+            ['taskkill', '/S', hostname, '/F', '/T', '/IM', 'PAExec-*'],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT
+        )
+
+        # Read output
         while True:
             line = killprocess.stdout.readline()
             if not line:
@@ -390,7 +415,8 @@ class Progression(tkinter.Frame):
             window, width=self.progression_canvas.winfo_width())
 
     def init_deployment(self, incl_execute=True):
-        # Initialize and (re)set variables
+
+        # Initialize and (re)set variables and fields
         self.kill = False
         self.kill_buttons = []
         self.include_cmd_execution = incl_execute
@@ -427,7 +453,7 @@ class Progression(tkinter.Frame):
             threads = []
             for hostname in self.targets:
                 while self.current_running_threads >= self.max_workers:
-                    time.sleep(0.01)
+                    time.sleep(0.05)
                 if self.kill:
                     Settings.logger.info("STOPPED CREATING NEW TARGET FRAMES")
                     break
@@ -435,7 +461,10 @@ class Progression(tkinter.Frame):
                 thread = self.create_thread_for_target(hostname)
                 threads.append(thread)
                 thread.start()
+                self.controller.update()
                 time.sleep(0.01)
+
+        # Wait for all threads and end deployment
             for t in threads:
                 t.join()
         self.deployment_finished()

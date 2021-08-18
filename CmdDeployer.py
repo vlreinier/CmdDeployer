@@ -7,8 +7,6 @@ import datetime
 import Handler
 import Settings
 import Utils
-import Selection
-import Progression
 
 
 if __name__ == "__main__":
@@ -18,7 +16,7 @@ if __name__ == "__main__":
         ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, " ".join(sys.argv[1:]), None, 1)
     else:
 
-        # Init actions and variables
+        # Create non existing directories
         if not os.path.exists(Settings.logdir):
             os.mkdir(Settings.logdir)
         if not os.path.exists(Settings.temp_cmd_loc):
@@ -31,15 +29,19 @@ if __name__ == "__main__":
         # Logger setup
         Settings.logfile = os.path.join(Settings.logdir, f"{Settings.instance_uid}.log")
         Settings.logger = logging.getLogger('CmdDeployer')
-        Settings.logger.setLevel(logging.DEBUG)
-        handler = logging.FileHandler(filename=Settings.logfile)
-        handler.setLevel(logging.DEBUG)
+        Settings.logger.setLevel(Settings.log_level)
         formatter = logging.Formatter(fmt='%(asctime)s %(levelname)s %(message)s', datefmt='%d-%m-%y %H:%M:%S')
-        handler.setFormatter(formatter)
-        Settings.logger.addHandler(handler)
+        filehandler = logging.FileHandler(filename=Settings.logfile)
+        streamhandler = logging.StreamHandler()
+        filehandler.setLevel(logging.DEBUG)
+        streamhandler.setLevel(logging.DEBUG)
+        filehandler.setFormatter(formatter)
+        streamhandler.setFormatter(formatter)
+        Settings.logger.addHandler(filehandler)
+        Settings.logger.addHandler(streamhandler)
         sys.excepthook = Utils.sys_exceptions
 
-        # For hiding console window
+        # For hiding console window during runtime
         if os.path.basename(os.path.dirname(os.getcwd())) == 'GitHub':
             Utils.cmd_visibility(show=True)
         else:
