@@ -7,7 +7,6 @@ import subprocess
 import threading
 import os
 import webbrowser
-import sys
 
 import Utils
 import Settings
@@ -277,16 +276,10 @@ class Progression(tkinter.Frame):
             for line in iter(process.stdout.readline, b''):
                 read_line_delta = time.time() - read_line
 
-                # Break or continue
-                if not line:
-                    break_loop = True
+                # Decode line
                 line = self.decode(line).rstrip()
-                if len(line) < 1:
-                    continue
-                if line.startswith("Ending time:"):
-                    break_loop = True
-
-                # Output parsing
+                if len(line) < 1: continue
+                if line.startswith("Ending time:"): break_loop = True
                 if not errorlevel['text'] == 'ERROR' and 'ErrorLevel: ' in line:
                     lvl = line[line.index("ErrorLevel: ") +
                                len("ErrorLevel: "):]
@@ -354,29 +347,16 @@ class Progression(tkinter.Frame):
 
     def kill_target(self, hostname, errorlevel, process):
         Settings.logger.info(f"KILL PROCESS HAS BEEN INITIATED FOR {hostname}")
-
-        # Kill subprocess
         process.terminate()
         process.kill()
-
-        # Create subprocess to kill remaining running services
-        killprocess = subprocess.Popen(
-            ['taskkill', '/S', hostname, '/F', '/T', '/IM', 'PAExec-*'],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT
-        )
-
-        # Read output
-        while True:
-            line = killprocess.stdout.readline()
-            if not line:
-                break
+        killprocess = subprocess.Popen(['taskkill', '/S', hostname, '/F', '/T', '/IM', 'PAExec-*'],
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        for line in iter(killprocess.stdout.readline, b''):
             line = self.decode(line).rstrip()
             if len(line) < 1:
                 continue
             else:
                 Settings.logger.info(line)
-        errorlevel.config(text="KILLED", fg=Settings.red_three)
 
     def get_err_color_text(self, levels):
         color = Settings.green_three
@@ -459,7 +439,8 @@ class Progression(tkinter.Frame):
                     Settings.logger.info("STOPPED CREATING NEW TARGET FRAMES")
                     break
                 self.current_running_threads += 1
-                thread = self.create_thread_for_target(hostname)
+                args = self.create_targetframe(hostname)
+                thread = threading.Thread(target=self.init_target_deployment, args=args)
                 threads.append(thread)
                 thread.start()
                 self.controller.update()
@@ -471,7 +452,7 @@ class Progression(tkinter.Frame):
         self.deployment_finished()
         Settings.logger.info("ALL THREADS HAVE BEEN TERMINATED")
 
-    def create_thread_for_target(self, hostname):
+    def create_targetframe(self, hostname):
         status_frame = tkinter.Frame(
             self.progression_frame, bg=Settings.bg_two)
         status_frame.grid(sticky='news', padx=3, pady=3)
@@ -529,8 +510,8 @@ class Progression(tkinter.Frame):
                                     relief="flat", activebackground=Settings.bg_two, bd=0, state='disabled', width=2)
         killbutton.grid(row=0, column=5, sticky='ew', padx=3)
         self.kill_buttons.append(killbutton)
-        return threading.Thread(target=self.init_target_deployment, args=(hostname, status_name_, output_button,
-            killbutton, connection_, errorlevel_, runtime_, cmd_output, len(self.targets)), daemon=True)
+        return (hostname, status_name_, output_button, killbutton, connection_,
+            errorlevel_, runtime_, cmd_output, len(self.targets))
 
     def show_hide_cmd_output_frame(self, button, textframe):
         if button['text'] == "ᐁ":
