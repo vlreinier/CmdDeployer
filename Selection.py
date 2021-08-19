@@ -91,6 +91,8 @@ class Selection(tkinter.Frame):
         installation_scrollbar_v.grid(sticky='ns')
         self.installation_canvas.config(
             yscrollcommand=installation_scrollbar_v.set)
+        self.create_checkbuttons(self.installation_canvas, self.installation_groups,
+            Settings.installations, Settings.green_one, Settings.green_two)
 
         ## Deletion frame ##
         self.deletion_frame = tkinter.Frame(self, bg='white')
@@ -124,6 +126,8 @@ class Selection(tkinter.Frame):
         deletion_scrollbar_v.grid(sticky='ns')
         self.deletion_canvas.config(
             yscrollcommand=deletion_scrollbar_v.set)
+        self.create_checkbuttons(self.deletion_canvas, self.deletion_groups,
+            Settings.deletions, Settings.red_one, Settings.red_two)
 
         ## Textfield frame ##
         self.textfield_frame = tkinter.Frame(self, bg='white')
@@ -185,10 +189,6 @@ class Selection(tkinter.Frame):
         proceed_button.image = proceed_image
 
         # Init app
-        self.place_checkbuttons(self.installation_canvas, self.installation_groups,
-                                Settings.installations, Settings.green_one, Settings.green_two)
-        self.place_checkbuttons(self.deletion_canvas, self.deletion_groups,
-                                Settings.deletions, Settings.red_one, Settings.red_two)
         if Settings.start_frame.lower() == 'textinput':
             self.textfield_mode()
         elif Settings.start_frame.lower() == 'deletion':
@@ -221,17 +221,7 @@ class Selection(tkinter.Frame):
                               for _, cols in xlsx["Deletions"].iterrows() if isinstance(cols.iloc[1], str)}
         Settings.text = ""
 
-    def select_group_software(self, valid_packages, packages, group_button_var):
-        if group_button_var.get():
-            group_button_var.set(0)
-            for package in valid_packages:
-                packages[package][0].set(0)
-        else:
-            group_button_var.set(1)
-            for package in valid_packages:
-                packages[package][0].set(1)
-
-    def place_checkbuttons(self, canvas, groups, packages, select_color, hover_color):
+    def create_checkbuttons(self, canvas, groups, packages, select_color, hover_color):
         canvas.delete('all')
         main_frame = tkinter.Frame(canvas)
         main_frame.grid_columnconfigure(0, weight=1)
@@ -289,6 +279,16 @@ class Selection(tkinter.Frame):
         newcols = max(1, event.widget.winfo_width()//buttonwidth)
         rows = math.ceil(n_buttons/newcols)
         event.widget.config(height=buttonheight*rows)
+
+    def select_group_software(self, valid_packages, packages, group_button_var):
+        if group_button_var.get():
+            group_button_var.set(0)
+            for package in valid_packages:
+                packages[package][0].set(0)
+        else:
+            group_button_var.set(1)
+            for package in valid_packages:
+                packages[package][0].set(1)
 
     def textfield_mode(self):
         self.deletion_frame.grid_forget()

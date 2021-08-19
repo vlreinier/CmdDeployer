@@ -309,8 +309,9 @@ class Progression(tkinter.Frame):
                         lines = ""
                 else:
                     if not logged_overflow:
-                        errorlevel.config(
-                            text='OVERFLOW', fg=Settings.red_three)
+                        cmd_output.config(state='normal')
+                        cmd_output.insert("end", f"Maximum output of {Settings.maxoutput} is reached")
+                        cmd_output.config(state='disabled')
                         logged_overflow = True
 
                 # New start time for calculating delta time
@@ -528,8 +529,8 @@ class Progression(tkinter.Frame):
                                     relief="flat", activebackground=Settings.bg_two, bd=0, state='disabled', width=2)
         killbutton.grid(row=0, column=5, sticky='ew', padx=3)
         self.kill_buttons.append(killbutton)
-        return threading.Thread(target=self.init_target_deployment, args=(hostname, status_name_, output_button, killbutton,
-                                                                          connection_, errorlevel_, runtime_, cmd_output, len(self.targets)), daemon=True)
+        return threading.Thread(target=self.init_target_deployment, args=(hostname, status_name_, output_button,
+            killbutton, connection_, errorlevel_, runtime_, cmd_output, len(self.targets)), daemon=True)
 
     def show_hide_cmd_output_frame(self, button, textframe):
         if button['text'] == "ᐁ":
