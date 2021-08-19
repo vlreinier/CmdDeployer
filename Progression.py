@@ -22,6 +22,7 @@ class Progression(tkinter.Frame):
         self.max_workers = Settings.default_workers
         self.targets = []
         self.kill = False
+        self.first_run = True
         self.kill_buttons = []
         self.execution_is_remote = False
         self.include_cmd_execution = True
@@ -68,7 +69,7 @@ class Progression(tkinter.Frame):
         self.info_label.grid(row=0, column=0, sticky='w')
         self.verify_targets = tkinter.Button(info_label_frame, bg='white', text='Verify ping connections',
                                              state='disabled', relief='flat', bd=0, anchor='s', activebackground='white', fg=Settings.fg_one,
-                                             command=lambda: threading.Thread(target=self.init_deployment, args=(False,)).start(), font=('Verdana', 9))
+                                             command=lambda: threading.Thread(target=self.init_deployment, args=(False,), daemon=True).start(), font=('Verdana', 9))
         self.verify_targets.grid(row=0, column=1, sticky='e')
         self.kill_process_button = tkinter.Button(info_label_frame, bg='white', anchor='s', state='disabled',
                                                   text='Kill open processes', relief='flat', activebackground='white', bd=0,
@@ -242,6 +243,8 @@ class Progression(tkinter.Frame):
             errorlevel.config(text="NO PING", fg=Settings.red_three)
         else:
             connection.config(text="✔", fg=Settings.green_three)
+            if not self.include_cmd_execution:
+                errorlevel.config(text="NO ISSUE", fg=Settings.green_three)
 
         # Include execution and outputting of cmd/batch commands
         if self.include_cmd_execution and pingable:
@@ -261,7 +264,7 @@ class Progression(tkinter.Frame):
 
             # Killbutton config command
             killbutton.config(cursor='hand2', state='normal',
-                              command=lambda: self.kill_target(hostname, errorlevel, process))
+                              command=lambda: self.kill_target(hostname, process))
             killbutton.bind('<Enter>', Utils.lambdaf_event(
                 Utils.obj_bg, status_name_, Settings.red_three), add="+")
             killbutton.bind('<Leave>', Utils.lambdaf_event(
@@ -345,7 +348,7 @@ class Progression(tkinter.Frame):
         for button in self.kill_buttons:
             button.invoke()
 
-    def kill_target(self, hostname, errorlevel, process):
+    def kill_target(self, hostname, process):
         Settings.logger.info(f"KILL PROCESS HAS BEEN INITIATED FOR {hostname}")
         process.terminate()
         process.kill()
@@ -378,7 +381,7 @@ class Progression(tkinter.Frame):
                 "Max workers input is not a integer, or is lower than 1.")
             self.max_workers = Settings.default_workers
 
-    def create_canvas_contents(self):
+    def setup_canvas_frame(self):
         self.progression_frame = tkinter.Frame(
             self.progression_canvas, bg=Settings.bg_two)
         self.progression_frame.grid_columnconfigure(0, weight=1)
@@ -396,9 +399,10 @@ class Progression(tkinter.Frame):
             window, width=self.progression_canvas.winfo_width())
 
     def init_deployment(self, incl_execute=True):
-
         # Initialize and (re)set variables and fields
+        if not self.first_run: self.progression_frame.destroy()
         self.kill = False
+        self.first_run = False
         self.kill_buttons = []
         self.include_cmd_execution = incl_execute
         self.execution_is_remote = self.remote_var.get()
@@ -412,8 +416,6 @@ class Progression(tkinter.Frame):
             font=('Verdana', 9, 'underline')))
         self.kill_process_button.bind("<Leave>", lambda event: event.widget.config(
             font=('Verdana', 9, '')))
-        self.progression_canvas.delete("all")
-        self.progression_canvas.yview_moveto(0)
         self.info_label.configure(text=Settings.install_state, fg='black')
         self.start_button.config(state="disabled", cursor='arrow')
         self.controller.protocol("WM_DELETE_WINDOW", lambda: None)
@@ -425,26 +427,25 @@ class Progression(tkinter.Frame):
         self.progressbar['value'] = 0
         self.progressbar['maximum'] = len(self.targets)
         self.current_running_threads = 0
-        self.create_canvas_contents()
         self.create_cmd_file()
         self.set_max_workers()
+        self.setup_canvas_frame()
 
         # Create threads for all hostnames and wait for all threads to finish
         if len(self.targets) > 0:
             threads = []
             for hostname in self.targets:
                 while self.current_running_threads >= self.max_workers:
-                    time.sleep(0.05)
+                    time.sleep(0.5)
                 if self.kill:
                     Settings.logger.info("STOPPED CREATING NEW TARGET FRAMES")
                     break
                 self.current_running_threads += 1
-                args = self.create_targetframe(hostname)
-                thread = threading.Thread(target=self.init_target_deployment, args=args)
+                thread = threading.Thread(target=self.init_target_deployment,
+                    args=self.create_targetframe(hostname))
                 threads.append(thread)
                 thread.start()
-                self.controller.update()
-                time.sleep(0.01)
+                self.progression_frame.update_idletasks()
 
         # Wait for all threads and end deployment
             for t in threads:
