@@ -50,7 +50,6 @@ def exit_app():
         os.remove(Settings.instance_cmdfile)
     if len(os.listdir(Settings.temp_cmd_loc)) == 0:
         shutil.rmtree(Settings.temp_cmd_loc)
-    Settings.logger.info("PROGRAM WILL BE SHUT DOWN")
     sys.exit()
 
 
