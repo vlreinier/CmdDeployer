@@ -247,7 +247,7 @@ class Progression(tkinter.Frame):
                 errorlevel.config(text="NO ISSUE", fg=Settings.green_three)
 
         # Include execution and outputting of cmd/batch commands
-        if self.include_cmd_execution and pingable:
+        if self.include_cmd_execution and pingable and not self.kill:
             cmd_output_button.config(state='normal', cursor='hand2')
             cmd_output_button.bind("<Enter>", lambda event: event.widget.config(
                 font=('Verdana', 9, 'underline')))
@@ -278,6 +278,9 @@ class Progression(tkinter.Frame):
             read_line = time.time()
             for line in iter(process.stdout.readline, b''):
                 read_line_delta = time.time() - read_line
+                if self.kill:
+                    self.kill_target(hostname, process)
+                    break_loop = True
 
                 # Decode line
                 line = self.decode(line).rstrip()
@@ -316,9 +319,12 @@ class Progression(tkinter.Frame):
                     break
 
         # Unexpected shutdown
-        if not break_loop and self.include_cmd_execution and pingable:
+        if not break_loop and self.include_cmd_execution and pingable or self.kill:
             errorlevel.config(text='KILLED', fg=Settings.red_three)
-            Settings.logger.error(f"UNEXPECTED SHUTDOWN FOR {hostname} WITH OUTPUT\n{lines.rstrip()}")
+            if len(lines.rstrip()) == 0:
+                Settings.logger.error(f"UNEXPECTED SHUTDOWN FOR {hostname}")
+            else:
+                Settings.logger.error(f"UNEXPECTED SHUTDOWN FOR {hostname} WITH OUTPUT\n{lines.rstrip()}")
 
         # Finalize for target
         cmd_output.config(state='normal')

@@ -277,8 +277,9 @@ class Selection(tkinter.Frame):
 
     def adjust_text_height(self, event, buttonwidth, buttonheight, n_buttons):
         newcols = max(1, event.widget.winfo_width()//buttonwidth)
-        rows = math.ceil(n_buttons/newcols)
-        event.widget.config(height=buttonheight*rows)
+        rows = math.ceil(n_buttons / newcols)
+        if event.widget['height'] != buttonheight*rows:
+            event.widget.config(height=buttonheight*rows)
 
     def select_group_software(self, valid_packages, packages, group_button_var):
         if group_button_var.get():

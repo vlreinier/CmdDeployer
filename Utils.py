@@ -21,7 +21,7 @@ def lambdaf(func, *args):
 
 
 def pingable(target, test_pings=4):
-    return os.system("ping " + f"-n {test_pings} " + target + '| find "TTL=" > nul') == 0
+    return os.system(f"ping -n {test_pings} {target}| find 'TTL=' > nul") == 0
 
 
 def cmd_visibility(show=True):
