@@ -12,10 +12,9 @@ import Utils
 if __name__ == "__main__":
 
     # Check UAC elevation and restart if not elevated
-    if Settings.elevated_cred and not Utils.is_admin():
+    if not Utils.is_admin():
         ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, " ".join(sys.argv[1:]), None, 1)
     else:
-
         # Create non existing directories
         if not os.path.exists(Settings.logdir):
             os.mkdir(Settings.logdir)

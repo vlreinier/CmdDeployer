@@ -38,5 +38,4 @@ max_output = int(config['DEFAULT']['max_output'])
 buffersize = int(config['DEFAULT']['buffersize'])
 max_buffertime = float(config['DEFAULT']['max_buffertime'])
 log_level = int(config['DEFAULT']['log_level'])
-elevated_cred = config['DEFAULT']['elevated_cred'] == 'True'
 hide_cmd = config['DEFAULT']['hide_cmd'] == 'True'

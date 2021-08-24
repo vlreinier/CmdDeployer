@@ -1,9 +1,8 @@
 import os
 import ctypes
 import sys
-import shutil
 import traceback
-import time
+import shutil
 
 import Settings
 
@@ -44,8 +43,12 @@ def exit_app():
     for handler in Settings.logger.handlers[:]:
         handler.close()
         Settings.logger.removeHandler(handler)
+    if os.path.exists(Settings.logfile):
+        os.remove(Settings.logfile)
     if os.path.exists(Settings.instance_cmdfile):
         os.remove(Settings.instance_cmdfile)
+    if len(os.listdir(Settings.temp_cmd_loc)) == 0:
+        shutil.rmtree(Settings.temp_cmd_loc)
     sys.exit()
 
 
