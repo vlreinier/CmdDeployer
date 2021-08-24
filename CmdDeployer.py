@@ -2,7 +2,7 @@ import logging
 import os
 import ctypes
 import sys
-import datetime
+import uuid
 
 import Handler
 import Settings
@@ -12,7 +12,7 @@ import Utils
 if __name__ == "__main__":
 
     # Check UAC elevation and restart if not elevated
-    if not Utils.is_admin():
+    if Settings.elevated_cred and not Utils.is_admin():
         ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, " ".join(sys.argv[1:]), None, 1)
     else:
 
@@ -23,7 +23,7 @@ if __name__ == "__main__":
             os.mkdir(Settings.temp_cmd_loc)
 
         # Create unique identifiers for cmd- and logfile
-        Settings.instance_uid = f"{datetime.datetime.now().strftime('%m-%d-%Y_%H.%M.%S')}_{os.environ['COMPUTERNAME']}"
+        Settings.instance_uid = f"{uuid.uuid1()}_{os.environ['COMPUTERNAME']}"
         Settings.instance_cmdfile = os.path.join(Settings.temp_cmd_loc, f"{Settings.instance_uid}.cmd")
 
         # Logger setup
@@ -42,7 +42,7 @@ if __name__ == "__main__":
         sys.excepthook = Utils.sys_exceptions
 
         # For hiding console window during runtime
-        if os.path.basename(os.path.dirname(os.getcwd())) == 'GitHub':
+        if not Settings.hide_cmd or os.path.basename(os.path.dirname(os.getcwd())) == 'GitHub':
             Utils.cmd_visibility(show=True)
         else:
             Utils.cmd_visibility(show=False)

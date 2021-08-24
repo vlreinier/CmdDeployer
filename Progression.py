@@ -298,7 +298,7 @@ class Progression(tkinter.Frame):
                 height += 1
                 if height-1 <= Settings.max_output:
                     lines += f"{line}\n"
-                    if (height % Settings.buffersize == 0) or break_loop or\
+                    if not Settings.use_buffer or (height % Settings.buffersize == 0) or break_loop or\
                         read_line_delta > Settings.max_buffertime:
                         cmd_output.config(state='normal')
                         cmd_output.insert("end", lines)

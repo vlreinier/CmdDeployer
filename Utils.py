@@ -21,7 +21,7 @@ def lambdaf(func, *args):
 
 
 def pingable(target, test_pings=4):
-    return os.system(f"ping -n {test_pings} {target}| find 'TTL=' > nul") == 0
+    return os.system(f'ping -n {test_pings} {target}| find "TTL=" > nul') == 0
 
 
 def cmd_visibility(show=True):
@@ -44,12 +44,8 @@ def exit_app():
     for handler in Settings.logger.handlers[:]:
         handler.close()
         Settings.logger.removeHandler(handler)
-    if os.path.exists(Settings.logfile):
-        os.remove(Settings.logfile)
     if os.path.exists(Settings.instance_cmdfile):
         os.remove(Settings.instance_cmdfile)
-    if len(os.listdir(Settings.temp_cmd_loc)) == 0:
-        shutil.rmtree(Settings.temp_cmd_loc)
     sys.exit()
 
 

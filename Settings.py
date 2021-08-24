@@ -33,7 +33,10 @@ height_perc = float(config['DEFAULT']['height_perc'])
 min_width = int(config['DEFAULT']['min_width'])
 min_height = int(config['DEFAULT']['min_height'])
 max_output_height = int(config['DEFAULT']['max_output_height'])
+use_buffer = config['DEFAULT']['start_frame'] == 'True'
 max_output = int(config['DEFAULT']['max_output'])
 buffersize = int(config['DEFAULT']['buffersize'])
 max_buffertime = float(config['DEFAULT']['max_buffertime'])
 log_level = int(config['DEFAULT']['log_level'])
+elevated_cred = config['DEFAULT']['elevated_cred'] == 'True'
+hide_cmd = config['DEFAULT']['hide_cmd'] == 'True'
