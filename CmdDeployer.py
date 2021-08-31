@@ -19,7 +19,7 @@ if __name__ == "__main__":
         if not os.path.exists(Settings.logdir):
             os.mkdir(Settings.logdir)
         if not os.path.exists(Settings.temp_cmd_loc):
-            os.mkdir(Settings.temp_cmd_loc)
+            os.makedirs(Settings.temp_cmd_loc)
 
         # Create unique identifiers for cmd- and logfile
         Settings.instance_uid = f"{uuid.uuid1()}_{os.environ['COMPUTERNAME']}"
