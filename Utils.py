@@ -47,7 +47,7 @@ def exit_app():
         os.remove(Settings.logfile)
     if os.path.exists(Settings.instance_cmdfile):
         os.remove(Settings.instance_cmdfile)
-    if len(os.listdir(Settings.temp_cmd_loc)) == 0:
+    if os.path.exists(Settings.temp_cmd_loc) and not len(os.listdir(Settings.temp_cmd_loc)):
         shutil.rmtree(Settings.temp_cmd_loc)
     sys.exit()
 
