@@ -21,9 +21,10 @@ if __name__ == "__main__":
         if not os.path.exists(Settings.temp_cmd_loc):
             os.makedirs(Settings.temp_cmd_loc)
 
-        # Create unique identifiers for cmd- and logfile
+        # Create unique identifiers for cmd- and logfile, and current running state
         Settings.instance_uid = f"{uuid.uuid1()}_{os.environ['COMPUTERNAME']}"
         Settings.instance_cmdfile = os.path.join(Settings.temp_cmd_loc, f"{Settings.instance_uid}.cmd")
+        Settings.running = False
 
         # Logger setup
         Settings.logfile = os.path.join(Settings.logdir, f"{Settings.instance_uid}.log")

@@ -1,6 +1,7 @@
 from typing import Set
 from PIL import Image, ImageTk
 from tkinter.ttk import Style, Progressbar, Combobox
+from tkinter import messagebox
 import tkinter
 import time
 import subprocess
@@ -404,11 +405,23 @@ class Progression(tkinter.Frame):
         self.progression_canvas.itemconfig(
             window, width=self.progression_canvas.winfo_width())
 
+    def exit_app(self):
+        if Settings.running:
+            if messagebox.askokcancel(title='Warning', message="Do you want to kill all running processes?"):
+                t = threading.Thread(target=self.kill_running_targets, daemon=True)
+                t.start()
+                t.join()
+                Settings.logger.info("ALL THREADS HAVE BEEN TERMINATED")
+            else:
+                return
+        Utils.exit_app()
+
     def init_deployment(self, incl_execute=True):
         # Initialize and (re)set variables and fields
         if not self.first_run: self.progression_frame.destroy()
         self.kill = False
         self.first_run = False
+        Settings.running = True
         self.kill_buttons = []
         self.include_cmd_execution = incl_execute
         self.execution_is_remote = self.remote_var.get()
@@ -424,7 +437,7 @@ class Progression(tkinter.Frame):
             font=('Verdana', 9, '')))
         self.info_label.configure(text=Settings.install_state, fg='black')
         self.start_button.config(state="disabled", cursor='arrow')
-        self.controller.protocol("WM_DELETE_WINDOW", lambda: None)
+        self.controller.protocol("WM_DELETE_WINDOW", lambda: threading.Thread(target=self.exit_app, daemon=True).start())
         self.verify_targets.config(
             state='disabled', cursor='arrow', font=("Verdana", 9, ""))
         self.verify_targets.unbind("<Enter>")
@@ -529,6 +542,7 @@ class Progression(tkinter.Frame):
             textframe.grid_forget()
 
     def deployment_finished(self):
+        Settings.running = False
         self.remote_checkbutton.config(
             state='normal', font=("Verdana", 8, ""), cursor='hand2')
         self.remote_checkbutton.bind("<Enter>", lambda event: event.widget.config(
@@ -547,5 +561,4 @@ class Progression(tkinter.Frame):
                 font=('Verdana', 9, 'underline')))
             self.verify_targets.bind("<Leave>", lambda event: event.widget.config(
                 font=('Verdana', 9, '')))
-        self.controller.protocol("WM_DELETE_WINDOW", Utils.exit_app)
         self.progressbar['value'] = self.progressbar['maximum']

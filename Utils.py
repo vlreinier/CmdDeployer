@@ -1,6 +1,5 @@
 import os
 import ctypes
-import sys
 import traceback
 import shutil
 
@@ -49,7 +48,7 @@ def exit_app():
         os.remove(Settings.instance_cmdfile)
     if os.path.exists(Settings.temp_cmd_loc) and not len(os.listdir(Settings.temp_cmd_loc)):
         shutil.rmtree(Settings.temp_cmd_loc)
-    sys.exit()
+    os._exit(1)
 
 
 def is_admin():
