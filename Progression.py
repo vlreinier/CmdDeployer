@@ -205,8 +205,8 @@ class Progression(tkinter.Frame):
         else:
             self.targets = ['127.0.0.1']
 
-    def create_cmd_file(self, sep='\n'):
-        with open(Settings.instance_cmdfile, 'w') as cmd:
+    def create_cmd_file(self, cmd_location, sep='\n'):
+        with open(cmd_location, 'w') as cmd:
             cmd.write(f'@echo off{sep}echo Starting time: %TIME%{sep}')
             if Settings.install_state == "Textinput":
                 cmd.write(f"{Settings.text}{sep}")
@@ -230,6 +230,7 @@ class Progression(tkinter.Frame):
     def init_target_deployment(self, hostname, status_name_, cmd_output_button, killbutton, connection,
                                errorlevel, runtime, cmd_output, n_targets):
         Settings.logger.info(f"INITIATED THREAD FOR {hostname}")
+        cmd_location = os.path.join(Settings.temp_cmd_loc, f"{Settings.instance_uid}_{hostname}.cmd")
         start_time = time.time()
         height = 0
         lines = ""
@@ -258,8 +259,10 @@ class Progression(tkinter.Frame):
                 cmd_output_button.invoke()
 
             # Init process
+            cmd_location = os.path.join(Settings.temp_cmd_loc, f"{Settings.instance_uid}_{hostname}.cmd")
+            self.create_cmd_file(cmd_location)
             cmd = [Settings.paexec_loc, f"\\\\{hostname}", "-f", "-s", "-c", "-csrc",
-                   Settings.instance_cmdfile, os.path.basename(Settings.instance_cmdfile)]
+                   cmd_location, os.path.basename(cmd_location)]
             process = subprocess.Popen(
                 cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
@@ -328,6 +331,8 @@ class Progression(tkinter.Frame):
                 Settings.logger.error(f"UNEXPECTED SHUTDOWN FOR {hostname} WITH OUTPUT\n{lines.rstrip()}")
 
         # Finalize for target
+        if os.path.exists(cmd_location):
+            os.remove(cmd_location)
         cmd_output.config(state='normal')
         cmd_output.delete("end-1c linestart", "end")
         cmd_output.config(state='disabled')
@@ -446,7 +451,6 @@ class Progression(tkinter.Frame):
         self.progressbar['value'] = 0
         self.progressbar['maximum'] = len(self.targets)
         self.current_running_threads = 0
-        self.create_cmd_file()
         self.set_max_workers()
         self.setup_canvas_frame()
 

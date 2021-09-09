@@ -44,8 +44,6 @@ def exit_app():
         Settings.logger.removeHandler(handler)
     if os.path.exists(Settings.logfile):
         os.remove(Settings.logfile)
-    if os.path.exists(Settings.instance_cmdfile):
-        os.remove(Settings.instance_cmdfile)
     if os.path.exists(Settings.temp_cmd_loc) and not len(os.listdir(Settings.temp_cmd_loc)):
         shutil.rmtree(Settings.temp_cmd_loc)
     os._exit(1)
